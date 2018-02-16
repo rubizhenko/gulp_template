@@ -8,6 +8,7 @@ var gulp = require('gulp'),
     sourcemaps = require('gulp-sourcemaps'),
     rigger = require('gulp-rigger'),
     cssmin = require('gulp-minify-css'),
+    postcss = require('gulp-postcss'),
     imagemin = require('gulp-imagemin'),
     pngquant = require('imagemin-pngquant'),
     rimraf = require('rimraf'),
@@ -91,6 +92,7 @@ gulp.task('style:build', function () {
         .pipe(prefixer(['last 15 versions', '> 1%', 'ie 8', 'ie 7'], {
             cascade: true
         }))
+        .pipe(postcss())
         .pipe(cssmin())
         .pipe(sourcemaps.write())
         .pipe(gulp.dest(path.build.css))
