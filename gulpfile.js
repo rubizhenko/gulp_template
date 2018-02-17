@@ -2,7 +2,8 @@
 
 var gulp = require('gulp'),
     watch = require('gulp-watch'),
-    prefixer = require('gulp-autoprefixer'),
+    autoprefixer = require('autoprefixer'),
+    mqpacker = require("css-mqpacker"),
     uglify = require('gulp-uglify'),
     sass = require('gulp-sass'),
     sourcemaps = require('gulp-sourcemaps'),
@@ -86,13 +87,21 @@ gulp.task('js:build', function () {
 });
 
 gulp.task('style:build', function () {
+    var processors = [
+        autoprefixer({browsers: ['last 10 versions'], cascade: false}),
+        mqpacker({
+            sort: function (a, b) {
+                a = a.replace(/\D/g,'');
+                b = b.replace(/\D/g,'');
+                return b-a;
+                // replace this with a-b for Mobile First approach
+            }
+        })
+    ];
     gulp.src(path.src.style)
         .pipe(sourcemaps.init())
         .pipe(sass().on('error', sass.logError))
-        .pipe(prefixer(['last 15 versions', '> 1%', 'ie 8', 'ie 7'], {
-            cascade: true
-        }))
-        .pipe(postcss())
+        .pipe(postcss(processors))
         .pipe(cssmin())
         .pipe(sourcemaps.write())
         .pipe(gulp.dest(path.build.css))
@@ -139,8 +148,8 @@ gulp.task('svg-ico:build', function () {
         .pipe(iconfontCss({
             fontName: 'fico', // required
             target: 'src/style/partials/font-icons.scss',
-            targetPath: '../style/partials/font-icons.scss',
-            fontPath: '../fonts/',
+            targetPath: '../../style/partials/font-icons.scss',
+            fontPath: '../fonts/icons/',
             cssClass: 'fico'
         }))
         .pipe(iconfont({
@@ -152,7 +161,7 @@ gulp.task('svg-ico:build', function () {
             fontStyle: 'normal',
             fontWeight: 'normal'
         }))
-        .pipe(gulp.dest('src/fonts/'));
+        .pipe(gulp.dest('src/fonts/icons'));
 });
 
 gulp.task('fonts:build', function () {
@@ -173,6 +182,7 @@ gulp.task('build', [
     'fonts:build',
     'video:build',
     'svg:build',
+    'clean-fonts',
     'svg-ico:build',
     'image:build'
 ]);
@@ -211,5 +221,10 @@ gulp.task('webserver', function () {
 gulp.task('clean', function (cb) {
     rimraf(path.clean, cb);
 });
+
+gulp.task('clean-fonts', function (cb) {
+    rimraf('build/fonts/icons/*.*', cb);
+});
+
 
 gulp.task('default', ['build', 'webserver', 'watch']);
