@@ -13,6 +13,7 @@ var gulp = require('gulp'),
     imagemin = require('gulp-imagemin'),
     pngquant = require('imagemin-pngquant'),
     rimraf = require('rimraf'),
+    wait = require('gulp-wait'),
     browserSync = require("browser-sync"),
     svgSprite = require("gulp-svg-sprites"),
     svgo = require('gulp-svgo'),
@@ -100,6 +101,7 @@ gulp.task('style:build', function () {
     ];
     gulp.src(path.src.style)
         .pipe(sourcemaps.init())
+        .pipe(wait(500))
         .pipe(sass().on('error', sass.logError))
         .pipe(postcss(processors))
         .pipe(cssmin())
