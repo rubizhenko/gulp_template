@@ -181,12 +181,12 @@ gulp.task('build', [
     'html:build',
     'js:build',
     'style:build',
-    'fonts:build',
     'video:build',
     'svg:build',
     'clean-fonts',
     'svg-ico:build',
-    'image:build'
+    'image:build',
+    'fonts:build'
 ]);
 
 gulp.task('watch', function () {
