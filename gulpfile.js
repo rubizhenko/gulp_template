@@ -17,7 +17,8 @@ var gulp = require('gulp'),
     browserSync = require("browser-sync"),
     svgSprite = require("gulp-svg-sprites"),
     svgo = require('gulp-svgo'),
-    reload = browserSync.reload;
+    reload = browserSync.reload,
+    spritesmith = require('gulp.spritesmith');
 
 
     var iconfont = require('gulp-iconfont');
@@ -33,12 +34,22 @@ var path = {
         fonts: 'build/fonts/',
         video: 'build/video/',
     },
+    deploy: { //Таск сборки проекта
+        html: 'www/',
+        js: 'www/js/',
+        css: 'www/css/',
+        img: 'www/img/',
+        svg: 'www/img/svg',
+        fonts: 'www/fonts/',
+        video: 'www/video/',
+    },
     src: { //Пути откуда брать исходники
         html: 'src/*.html', //Синтаксис src/*.html говорит gulp что мы хотим взять все файлы с расширением .html
         js: 'src/js/main.js', //В стилях и скриптах нам понадобятся только main файлы
         style: 'src/style/main.sass',
         img: 'src/img/**/*.*', //Синтаксис img/**/*.* означает - взять все файлы всех расширений из папки и из вложенных каталогов
         svg: 'src/svg/*.*',
+        sprite: 'src/sprite/*.*',
         svgico: 'src/svgico/*.*',
         video: 'src/video/*.*',
         fonts: 'src/fonts/**/*.*'
@@ -48,6 +59,7 @@ var path = {
         js: 'src/js/**/*.js',
         style: 'src/style/**/*.+(scss|sass)',
         img: 'src/img/**/*.*',
+        sprite: 'src/sprite/*.*',
         svg: 'src/svg/*.*',
         svgico: 'src/svgico/*.*',
         video: 'src/video/*.*',
@@ -75,6 +87,12 @@ gulp.task('html:build', function () {
         }));
 });
 
+gulp.task('html:deploy', function () {
+    gulp.src(path.src.html)
+        .pipe(rigger())
+        .pipe(gulp.dest(path.deploy.html));
+});
+
 gulp.task('js:build', function () {
     gulp.src(path.src.js)
         .pipe(rigger())
@@ -85,6 +103,12 @@ gulp.task('js:build', function () {
         .pipe(reload({
             stream: true
         }));
+});
+gulp.task('js:deploy', function () {
+    gulp.src(path.src.js)
+        .pipe(rigger())
+        .pipe(uglify())
+        .pipe(gulp.dest(path.deploy.js))
 });
 
 gulp.task('style:build', function () {
@@ -111,6 +135,25 @@ gulp.task('style:build', function () {
             stream: true
         }));
 });
+gulp.task('style:deploy', function () {
+    var processors = [
+        autoprefixer({browsers: ['last 10 versions'], cascade: false}),
+        mqpacker({
+            sort: function (a, b) {
+                a = a.replace(/\D/g,'');
+                b = b.replace(/\D/g,'');
+                return b-a;
+                // replace this with a-b for Mobile First approach
+            }
+        })
+    ];
+    gulp.src(path.src.style)
+        .pipe(wait(500))
+        .pipe(sass().on('error', sass.logError))
+        .pipe(postcss(processors))
+        .pipe(cssmin())
+        .pipe(gulp.dest(path.deploy.css));
+});
 
 gulp.task('image:build', function () {
     gulp.src(path.src.img)
@@ -126,6 +169,37 @@ gulp.task('image:build', function () {
         .pipe(reload({
             stream: true
         }));
+});
+
+gulp.task('sprite:build', function() {
+    var spriteData = gulp.src(path.src.sprite)
+    .pipe(spritesmith({
+        imgName: 'icons.png',
+        cssName: 'sprite.sass',
+        imgPath: '../img/icons.png',
+        cssFormat: 'sass',
+        padding: 5
+    }));
+    spriteData.img
+        .pipe(gulp.dest(path.build.img));
+    spriteData.css
+        .pipe(gulp.dest('src/style/libs/'))
+        .pipe(reload({
+            stream: true
+        }));
+});
+
+gulp.task('image:deploy', function () {
+    gulp.src(path.src.img)
+        .pipe(imagemin({
+            progressive: true,
+            svgoPlugins: [{
+                removeViewBox: false
+            }],
+            use: [pngquant()],
+            interlaced: true
+        }))
+        .pipe(gulp.dest(path.deploy.img));
 });
 
 gulp.task('svg:build', function () {
@@ -171,10 +245,20 @@ gulp.task('fonts:build', function () {
         .pipe(gulp.dest(path.build.fonts));
 });
 
+gulp.task('fonts:deploy', function () {
+    gulp.src(path.src.fonts)
+        .pipe(gulp.dest(path.deploy.fonts));
+});
+
 
 gulp.task('video:build', function () {
     gulp.src(path.src.video)
         .pipe(gulp.dest(path.build.video));
+});
+
+gulp.task('video:deploy', function () {
+    gulp.src(path.src.video)
+        .pipe(gulp.dest(path.deploy.video));
 });
 
 gulp.task('build', [
@@ -186,7 +270,20 @@ gulp.task('build', [
     'clean-fonts',
     'svg-ico:build',
     'image:build',
+    'sprite:build',
     'fonts:build'
+]);
+
+gulp.task('deploy', [
+    'html:deploy',
+    'js:deploy',
+    'style:deploy',
+    'fonts:deploy',
+    'video:deploy',
+    'svg:build',    
+    'svg:build',
+    'svg-ico:build',
+    'image:deploy'
 ]);
 
 gulp.task('watch', function () {
@@ -207,6 +304,9 @@ gulp.task('watch', function () {
     });
     watch([path.watch.img], function (event, cb) {
         gulp.start('image:build');
+    });
+    watch([path.watch.sprite], function (event, cb) {
+        gulp.start('sprite:build');
     });
     watch([path.watch.fonts], function (event, cb) {
         gulp.start('fonts:build');
