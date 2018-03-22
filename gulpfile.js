@@ -24,6 +24,8 @@ var gulp = require('gulp'),
     var iconfont = require('gulp-iconfont');
     var iconfontCss = require('gulp-iconfont-css');
 
+    const babel = require('gulp-babel');
+
 var path = {
     build: { //Тут мы укажем куда складывать готовые после сборки файлы
         html: 'build/',
@@ -97,7 +99,6 @@ gulp.task('js:build', function () {
     gulp.src(path.src.js)
         .pipe(rigger())
         .pipe(sourcemaps.init())
-        .pipe(uglify())
         .pipe(sourcemaps.write())
         .pipe(gulp.dest(path.build.js))
         .pipe(reload({
@@ -107,6 +108,9 @@ gulp.task('js:build', function () {
 gulp.task('js:deploy', function () {
     gulp.src(path.src.js)
         .pipe(rigger())
+        .pipe(babel({
+            presets: ['env']
+        }))
         .pipe(uglify())
         .pipe(gulp.dest(path.deploy.js))
 });

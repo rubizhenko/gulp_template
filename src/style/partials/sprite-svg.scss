@@ -6,7 +6,7 @@
       display: inline-block;
       background-image: url("../img/svg/sprite.svg");
       background-repeat: no-repeat;
-      background-size: 42.410000000000004em 8.5em;
+      background-size: 18.1em 18.1em;
 
       .no-svg & {
         background-image: url("../svg/sprite.png");
@@ -17,16 +17,16 @@
 
 
 
-.icon.svg-logo {
+.icon.svg-user {
   &:before {
       background-position: -1em -1em;
-      width: 40.410000000000004em;
-      height: 6.42em;
+      width: 16.1em;
+      height: 16.1em;
     }
   }
 
-  @mixin icon-svg-logo(){
-    @extend .svg-logo;
+  @mixin icon-svg-user(){
+    @extend .svg-user;
   }
 
 
