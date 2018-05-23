@@ -47,7 +47,7 @@ var path = {
     },
     src: { //Пути откуда брать исходники
         html: 'src/*.html', //Синтаксис src/*.html говорит gulp что мы хотим взять все файлы с расширением .html
-        js: 'src/js/main.js', //В стилях и скриптах нам понадобятся только main файлы
+        js: 'src/js/*.js', //В стилях и скриптах нам понадобятся только main файлы
         style: 'src/style/main.sass',
         img: 'src/img/**/*.*', //Синтаксис img/**/*.* означает - взять все файлы всех расширений из папки и из вложенных каталогов
         svg: 'src/svg/*.*',
@@ -74,7 +74,7 @@ var config = {
     server: {
         baseDir: "./build"
     },
-    tunnel: true,
+    tunnel: false,
     host: 'localhost',
     port: 9000,
     logPrefix: "terraleads"
@@ -269,7 +269,6 @@ gulp.task('build', [
     'html:build',
     'js:build',
     'style:build',
-    'video:build',
     'svg:build',
     'clean-fonts',
     'svg-ico:build',
@@ -283,7 +282,6 @@ gulp.task('deploy', [
     'js:deploy',
     'style:deploy',
     'fonts:deploy',
-    'video:deploy',
     'svg:build',    
     'svg:build',
     'svg-ico:build',
