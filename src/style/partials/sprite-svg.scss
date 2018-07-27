@@ -6,7 +6,7 @@
       display: inline-block;
       background-image: url("../img/svg/sprite.svg");
       background-repeat: no-repeat;
-      background-size: 18.1em 18.1em;
+      background-size: 53.2em 124.5em;
 
       .no-svg & {
         background-image: url("../svg/sprite.png");
@@ -17,9 +17,35 @@
 
 
 
-.icon.svg-user {
+.icon.svg-calendar {
   &:before {
       background-position: -1em -1em;
+      width: 51.2em;
+      height: 51.2em;
+    }
+  }
+
+  @mixin icon-svg-calendar(){
+    @extend .svg-calendar;
+  }
+
+
+.icon.svg-compass {
+  &:before {
+      background-position: -1em -54.2em;
+      width: 51.2em;
+      height: 51.2em;
+    }
+  }
+
+  @mixin icon-svg-compass(){
+    @extend .svg-compass;
+  }
+
+
+.icon.svg-user {
+  &:before {
+      background-position: -1em -107.4em;
       width: 16.1em;
       height: 16.1em;
     }

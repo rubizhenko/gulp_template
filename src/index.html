@@ -1,29 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-   <link rel="stylesheet" href="css/main.css">
-   <title>Terraleads</title>
-</head>
-<body>
-   //= template/header.html
-   <aside class="sidebar">
-      <i class="icon svg-logo"></i>
-      <nav class="sidebar__nav">
-        <a  href="#" class="item is-active"> <i class="fico fico-profile"></i> Profile</a> 
-        <a  href="#" class="item">Statistics</a>
-        <a  href="#" class="item">Setings</a>
-        <a  href="#" class="item">FAQ</a>
-        <a  href="#" class="item">Support</a>
-      </nav>
-   </aside>
 
-   <section class="content">
-      Content
-  </section>
-  //= template/footer.html
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/main.css">
+  <title>Terraleads</title>
+</head>
+
+<body>
+  <!--=include template/header.html -->
+  <i class="fico fico-send"></i>
+  <i class="fico fico-facebook"></i>
+  
+  <img src="img/svg/send.svg" width="100px" alt="">
+
+  <svg class="icon store"><use xlink:href="#store"></use></svg>
+  <svg class="icon purse"><use xlink:href="#purse"></use></svg>
+
+  <i class="sprite sprite-store"></i>
+  <i class="sprite sprite-new"></i>
+
+  <!--=include template/footer.html -->
+
+  <!--=require img/svg/symbols.svg -->
   <script src="js/main.js"></script>
 </body>
+
 </html>

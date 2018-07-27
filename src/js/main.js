@@ -1,1 +1,1 @@
-//= partials/app.js
+//=require partials/app.js

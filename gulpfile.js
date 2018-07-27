@@ -9,7 +9,7 @@ const gulp = require('gulp'),
 	postcss = require('gulp-postcss'),
 	uglify = require('gulp-uglify'),
 	sourcemaps = require('gulp-sourcemaps'),
-	rigger = require('gulp-rigger'),
+	include = require("gulp-include"),
 	imagemin = require('gulp-imagemin'),
 	pngquant = require('imagemin-pngquant'),
 	rimraf = require('rimraf'),
@@ -29,10 +29,10 @@ var path = {
 		js: 'src/js/*.js',
 		style: 'src/style/main.sass',
 		img: 'src/img/**/*.*',
-		svg: 'src/svg/*.*',
-		sprite: 'src/sprite/*.*',
-		spriteSVG: 'src/spriteSVG/*.*',
-		svgico: 'src/svgico/*.*',
+		svg: 'src/svg/*.svg',
+		sprite: 'src/sprite/*.+(jpg|jpeg|png)',
+		spriteSVG: 'src/spriteSVG/*.svg',
+		svgico: 'src/svgico/*.svg',
 		video: 'src/video/*.*',
 		fonts: 'src/fonts/**/*.*'
 	},
@@ -58,11 +58,11 @@ var path = {
 		html: 'src/**/*.html',
 		js: 'src/js/**/*.js',
 		style: 'src/style/**/*.+(scss|sass)',
-		img: 'src/img/**/*.*',
-		sprite: 'src/sprite/*.*',
-		spriteSVG: 'src/spriteSVG/*.*',
-		svg: 'src/svg/*.*',
-		svgico: 'src/svgico/*.*',
+		img: 'src/img/**/*.+(jpg|jpeg|png|gif|ico)',
+		sprite: 'src/sprite/*.+(jpg|jpeg|png)',
+		spriteSVG: 'src/spriteSVG/*.svg',
+		svg: 'src/svg/*.svg',
+		svgico: 'src/svgico/*.svg',
 		video: 'src/video/*.*',
 		fonts: 'src/fonts/**/*.*'
 	},
@@ -72,7 +72,7 @@ var path = {
 var config = {
 	server: {
 		baseDir: "./build"
-	},
+	}, 
 	tunnel: false,
 	host: 'localhost',
 	port: 9000,
@@ -81,7 +81,7 @@ var config = {
 
 gulp.task('html:build', function () {
 	gulp.src(path.src.html)
-		.pipe(rigger())
+		.pipe(include())
 		.pipe(gulp.dest(path.build.html))
 		.pipe(reload({
 			stream: true
@@ -90,13 +90,13 @@ gulp.task('html:build', function () {
 
 gulp.task('html:deploy', function () {
 	gulp.src(path.src.html)
-		.pipe(rigger())
+		.pipe(include())
 		.pipe(gulp.dest(path.deploy.html));
 });
 
 gulp.task('js:build', function () {
 	gulp.src(path.src.js)
-		.pipe(rigger())
+		.pipe(include())
 		.pipe(babel({
 			presets: ['env']
 		}))
@@ -109,7 +109,7 @@ gulp.task('js:build', function () {
 });
 gulp.task('js:deploy', function () {
 	gulp.src(path.src.js)
-		.pipe(rigger())
+		.pipe(include())
 		.pipe(babel({
 			presets: ['env']
 		}))
@@ -175,7 +175,7 @@ gulp.task('image:build', function () {
 		}));
 });
 gulp.task('image:deploy', function () {
-	gulp.src(path.build.img)
+	gulp.src(path.build.img+'/**/*.*')
 		.pipe(imagemin({
 			progressive: true,
 			svgoPlugins: [{
@@ -207,28 +207,53 @@ gulp.task('sprite:build', function () {
 
 gulp.task('svg:build', function () {
 	return gulp.src(path.src.svg)
+		.pipe(wait(3000))
 		.pipe(svgo())
-		.pipe(gulp.dest('src/img'));
+		.pipe(gulp.dest(path.build.svg));
+});
+gulp.task('svg:deploy', function () {
+	return gulp.src(path.src.svg)
+		.pipe(svgo())
+		.pipe(gulp.dest(path.deploy.svg));
 });
 
 gulp.task('spriteSVG:build', function () {
 	return gulp.src(path.src.spriteSVG)
+		.pipe(wait(3000))
 		.pipe(svgo())
 		.pipe(svgSprite({
-			selector: "svg-%f",
-			cssFile: "../style/partials/sprite-svg.scss",
-			svgPath: "../img/svg/sprite.svg",
-			preview: false,
-			padding: 10,
-			templates: {
-				scss: true
+			mode: "symbols",
+			preview: {
+				symbols: '../../preview/symbols.html'
+			},
+			selector: "%f",
+			svg: {
+				symbols: 'symbols.svg'
+			},
+			transformData: function (data, config) {
+				data.svg.map(function (item) {
+					//change id attribute
+					item.data = item.data.replace(/id=\"([^\"]+)\"/gm, 'id="' + item.name + '-$1"');
+
+					//change id in fill attribute
+					item.data = item.data.replace(/fill=\"url\(\#([^\"]+)\)\"/gm, 'fill="url(#' + item.name + '-$1)"');
+
+					//change id in mask attribute
+					item.data = item.data.replace(/mask=\"url\(\#([^\"]+)\)\"/gm, 'mask="url(#' + item.name + '-$1)"');
+
+					//replace double id for the symbol tag
+					item.data = item.data.replace('id="' + item.name + '-' + item.name + '"', 'id="' + item.name + '"');
+					return item;
+				});
+				return data; // modify the data and return it
 			}
 		}))
-		.pipe(gulp.dest('src/img'));
+		.pipe(gulp.dest('src/img/svg'));
 });
 
 gulp.task('svg-ico:build', function () {
 	return gulp.src(path.src.svgico)
+		.pipe(wait(1000))
 		.pipe(svgo())
 		.pipe(iconfontCss({
 			fontName: 'fico', // required
@@ -280,7 +305,7 @@ gulp.task('build', [
 	'image:build',
 	'sprite:build',
 	'spriteSVG:build',
-	'fonts:build'
+	'fonts:build',
 ]);
 
 gulp.task('deploy', [
@@ -288,7 +313,8 @@ gulp.task('deploy', [
 	'js:deploy',
 	'style:deploy',
 	'fonts:deploy',
-	'svg:build',
+	'svg:deploy',
+	'spriteSVG:build',
 	'svg-ico:build',
 	'image:deploy'
 ]);
@@ -314,6 +340,9 @@ gulp.task('watch', function () {
 	});
 	watch([path.watch.sprite], function (event, cb) {
 		gulp.start('sprite:build');
+	});
+	watch([path.watch.spriteSVG], function (event, cb) {
+		gulp.start('spriteSVG:build');
 	});
 	watch([path.watch.fonts], function (event, cb) {
 		gulp.start('fonts:build');
