@@ -2,5 +2,10 @@ node_modules
 .vscode
 .eslintrc.js
 build
+src/style/partials/font-icons.scss
+src/style/libs/sprite.sass
+src/style/partials/font-icons.scss
 src/fonts/icons
 package-lock.json
+src/img/svg/symbols.svg
+src/preview/symbols.html
