@@ -3,3 +3,4 @@ node_modules
 .eslintrc.js
 build
 src/fonts/icons
+package-lock.json
