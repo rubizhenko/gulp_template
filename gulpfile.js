@@ -16,7 +16,7 @@ const gulp = require('gulp'),
 	wait = require('gulp-wait'),
 	browserSync = require("browser-sync"),
 	svgSprite = require("gulp-svg-sprites"),
-	spritesmith = require('gulp.spritesmith'),
+	spritesmith = require('gulp.spritesmith-multi'),
 	svgo = require('gulp-svgo'),
 	iconfont = require('gulp-iconfont'),
 	iconfontCss = require('gulp-iconfont-css'),
@@ -30,8 +30,8 @@ var path = {
 		style: 'src/style/main.sass',
 		img: 'src/img/**/*.*',
 		svg: 'src/svg/*.svg',
-		sprite: 'src/sprite/*.+(jpg|jpeg|png)',
-		spriteSVG: 'src/spriteSVG/*.svg',
+		sprite: 'src/sprite/**/*.+(jpg|jpeg|png)',
+		spriteSVG: 'src/sprite/SVG/*.svg',
 		svgico: 'src/svgico/*.svg',
 		video: 'src/video/*.*',
 		fonts: 'src/fonts/**/*.*'
@@ -59,7 +59,7 @@ var path = {
 		js: 'src/js/**/*.js',
 		style: 'src/style/**/*.+(scss|sass)',
 		img: 'src/img/**/*.+(jpg|jpeg|png|gif|ico)',
-		sprite: 'src/sprite/*.+(jpg|jpeg|png)',
+		sprite: 'src/sprite/**/*.+(jpg|jpeg|png)',
 		spriteSVG: 'src/spriteSVG/*.svg',
 		svg: 'src/svg/*.svg',
 		svgico: 'src/svgico/*.svg',
@@ -72,7 +72,7 @@ var path = {
 var config = {
 	server: {
 		baseDir: "./build"
-	}, 
+	},
 	tunnel: false,
 	host: 'localhost',
 	port: 9000,
@@ -175,7 +175,7 @@ gulp.task('image:build', function () {
 		}));
 });
 gulp.task('image:deploy', function () {
-	gulp.src(path.build.img+'/**/*.*')
+	gulp.src(path.build.img + '/**/*.*')
 		.pipe(imagemin({
 			progressive: true,
 			svgoPlugins: [{
@@ -186,16 +186,18 @@ gulp.task('image:deploy', function () {
 		}))
 		.pipe(gulp.dest(path.deploy.img));
 });
-
+var options = {
+	spritesmith: function (option, sprite){
+		option.imgName = sprite + '.png';
+		option.cssName = sprite + '.sass';
+		option.imgPath = '../img/'+sprite+'.png';
+		option.padding = 10;
+		delete option.cssTemplate;
+	},
+};
 gulp.task('sprite:build', function () {
 	var spriteData = gulp.src(path.src.sprite)
-		.pipe(spritesmith({
-			imgName: 'icons.png',
-			cssName: 'sprite.sass',
-			imgPath: '../img/icons.png',
-			cssFormat: 'sass',
-			padding: 5
-		}));
+		.pipe(spritesmith(options));
 	spriteData.img
 		.pipe(gulp.dest(path.build.img));
 	spriteData.css
