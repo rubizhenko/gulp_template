@@ -31,7 +31,7 @@ var path = {
 		img: 'src/img/**/*.*',
 		svg: 'src/svg/*.svg',
 		sprite: 'src/sprite/**/*.+(jpg|jpeg|png)',
-		spriteSVG: 'src/sprite/SVG/*.svg',
+		spriteSVG: 'src/spriteSVG/*.svg',
 		svgico: 'src/svgico/*.svg',
 		video: 'src/video/*.*',
 		fonts: 'src/fonts/**/*.*'
@@ -57,7 +57,7 @@ var path = {
 	watch: {
 		html: 'src/**/*.html',
 		js: 'src/js/**/*.js',
-		style: 'src/style/**/*.+(scss|sass)',
+		style: 'src/style/**/*.+(scss|sass|css)',
 		img: 'src/img/**/*.+(jpg|jpeg|png|gif|ico)',
 		sprite: 'src/sprite/**/*.+(jpg|jpeg|png)',
 		spriteSVG: 'src/spriteSVG/*.svg',
@@ -222,7 +222,6 @@ gulp.task('svg:deploy', function () {
 gulp.task('spriteSVG:build', function () {
 	return gulp.src(path.src.spriteSVG)
 		.pipe(wait(3000))
-		.pipe(svgo())
 		.pipe(svgSprite({
 			mode: "symbols",
 			preview: {
