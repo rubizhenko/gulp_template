@@ -10,6 +10,7 @@ const gulp = require('gulp'),
 	uglify = require('gulp-uglify'),
 	sourcemaps = require('gulp-sourcemaps'),
 	include = require("gulp-include"),
+	htmlmin = require('gulp-htmlmin'),
 	imagemin = require('gulp-imagemin'),
 	pngquant = require('imagemin-pngquant'),
 	rimraf = require('rimraf'),
@@ -82,6 +83,7 @@ var config = {
 gulp.task('html:build', function () {
 	gulp.src(path.src.html)
 		.pipe(include())
+		.pipe(htmlmin({collapseWhitespace: true}))
 		.pipe(gulp.dest(path.build.html))
 		.pipe(reload({
 			stream: true
@@ -91,6 +93,7 @@ gulp.task('html:build', function () {
 gulp.task('html:deploy', function () {
 	gulp.src(path.src.html)
 		.pipe(include())
+		.pipe(htmlmin({collapseWhitespace: true}))
 		.pipe(gulp.dest(path.deploy.html));
 });
 
