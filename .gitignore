@@ -9,6 +9,5 @@ package-lock.json
 src/img/svg/symbols.svg
 src/preview/symbols.html
 bower_components
-src/libs
 sitespeed-result
 backstop_data/bitmaps_test/
