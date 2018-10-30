@@ -265,3 +265,32 @@
 	text-shadow: makelongshadow($color)
 	
 
+=ellipsis
+	text-overflow: ellipsis
+	white-space: nowrap
+	overflow: hidden
+=hide-right
+	position: relative
+	&::after
+		content: ''
+		position: absolute
+		top: 0
+		bottom: 0
+		right: 0
+		width: 30px
+		background: linear-gradient(to left, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%)
+
+
+=object-fit($fit: fill, $position: null)
+	-o-object-fit: $fit
+	object-fit: $fit
+	@if $position
+		-o-object-position: $position
+		object-position: $position
+		font-family: 'object-fit: #{$fit}; object-position: #{$position}'
+	@else
+		font-family: 'object-fit: #{$fit}'
+
+=nlt
+	&:not(:last-of-type)
+		@content

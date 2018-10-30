@@ -18,6 +18,7 @@
     "eslint-config-google": "^0.9.1",
     "gulp": "^3.9.1",
     "gulp-babel": "^7.0.1",
+    "gulp-htmlmin": "^4.0.0",
     "gulp-iconfont": "^9.1.0",
     "gulp-iconfont-css": "^2.1.0",
     "gulp-imagemin": "^3.3.0",
@@ -37,6 +38,10 @@
     "imagemin-pngquant": "^4.0.0",
     "jshint": "^2.9.5",
     "rimraf": "^2.3.1",
-    "gulp-htmlmin": "^4.0.0"
+    "webpack-stream": "^5.1.1"
+  },
+  "dependencies": {
+    "body-scroll-lock": "^2.5.7",
+    "object-fit-images": "^3.2.4"
   }
 }
