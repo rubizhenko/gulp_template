@@ -1,6 +1,8 @@
-# Base Gulp template
+# Gulper - Gulp starter
 
----------------------------------
+---
+
+![Gulper](src/img/gulper.png)
 
 Навигация
 
@@ -16,10 +18,9 @@
 - [Build проекта](#build-проекта)
 - [Production проекта](#production-проекта)
 
-
 ## Создание нового проекта
 
-Для создания нового проекта, необходимо выкачать `.zip` архив репозитория. После разархивирования  запустить в терминале следующие команды:
+Для создания нового проекта, необходимо выкачать `.zip` архив репозитория. После разархивирования запустить в терминале следующие команды:
 
 ```
 npm install && gulp
@@ -52,7 +53,6 @@ my-app/
     fonts/
   build/
   www/
-
 ```
 
 ### HTML
@@ -68,7 +68,7 @@ my-app/
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" href="css/main.css">
-  <title>Terraleads</title>
+  <title>Document title</title>
 </head>
 
 <body>
@@ -95,12 +95,12 @@ my-app/
 @import "partials/custom"
 ```
 
-
 ### JavaScript
 
 Главный `main.js` файл находится в папке `src/js/`. Он предназначен для включения js-модулей
 
 Пример:
+
 ```js
 //=require partials/app-lib.js
 
@@ -110,6 +110,7 @@ my-app/
 **require подключит файл только 1 раз. include можно использовать для подключения файл несколько раз.**
 
 ### Спрайты
+
 Для создания спрайта необходимо `.png` или `.jpg` картинки поместить в папку `sprite` после чего будет создан спрайт `sprite.png`
 
 Пример использования в HTML:
@@ -133,8 +134,6 @@ my-app/
   @import "libs/icons"
 ```
 
-
-
 ### Иконочные шрифты
 
 Для создания иконочного шрифта SVG картинки нужно помещать в папку `svgico/` после чего будет создан шрифт `fico.*`.
@@ -144,7 +143,6 @@ my-app/
 ```html
   <i class="fico fico-facebook"></i>
 ```
-
 
 ### SVG
 
