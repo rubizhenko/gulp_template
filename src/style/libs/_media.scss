@@ -53,26 +53,20 @@
 
 $units: 1px !default;
 
-@mixin screen($res-min, $res-max)
-{
-  @media screen and ( min-width: if(unitless($res-min), $res-min*$units, $res-min) ) and ( max-width: if(unitless($res-max), $res-max*$units, $res-max) )
-  {
+@mixin screen($res-min, $res-max) {
+  @media screen and (min-width: if(unitless($res-min), $res-min*$units, $res-min)) and (max-width: if(unitless($res-max), $res-max*$units, $res-max)) {
     @content;
   }
 }
 
-@mixin max-screen($res)
-{
-  @media screen and ( max-width: if(unitless($res), $res*$units, $res) )
-  {
+@mixin max-screen($res) {
+  @media screen and (max-width: if(unitless($res), $res*$units, $res)) {
     @content;
   }
 }
 
-@mixin min-screen($res)
-{
-  @media screen and ( min-width: if(unitless($res), $res*$units, $res) )
-  {
+@mixin min-screen($res) {
+  @media screen and (min-width: if(unitless($res), $res*$units, $res)) {
     @content;
   }
 }
@@ -84,54 +78,64 @@ $units: 1px !default;
 // Based on bourbon hidpi-media-queries file (https://github.com/thoughtbot/bourbon/blob/master/app/assets/stylesheets/css3/_hidpi-media-query.scss)
 // HiDPI mixin. Default value set to 1.3 to target Google Nexus 7 (http://bjango.com/articles/min-device-pixel-ratio/)
 
-@mixin hdpi($ratio: 1.3)
-{
+@mixin hdpi($ratio: 1.3) {
   @media only screen and (-webkit-min-device-pixel-ratio: $ratio),
   only screen and (min--moz-device-pixel-ratio: $ratio),
   only screen and (-o-min-device-pixel-ratio: #{$ratio}/1),
   only screen and (min-resolution: #{round($ratio*96)}dpi),
-  only screen and (min-resolution: #{$ratio}dppx)
-  {
+  only screen and (min-resolution: #{$ratio}dppx) {
     @content;
   }
 }
+@mixin background-2x(
+  $path,
+  $ext: "png",
+  $w: auto,
+  $h: auto,
+  $pos: left top,
+  $repeat: no-repeat
+) {
+  $at1x_path: "#{$path}.#{$ext}";
+  $at2x_path: "#{$path}@2x.#{$ext}";
 
+  background-image: url("#{$at1x_path}");
+  background-size: $w $h;
+  background-position: $pos;
+  background-repeat: $repeat;
+
+  @media all and (-webkit-min-device-pixel-ratio: 1.5),
+    all and (-o-min-device-pixel-ratio: 3/2),
+    all and (min--moz-device-pixel-ratio: 1.5),
+    all and (min-device-pixel-ratio: 1.5) {
+    background-image: url("#{$at2x_path}");
+  }
+}
+
+//+background-2x("../img/header_back", 'jpg', 893px, 884px, center top, no-repeat)
 // ---------------------------------------------------------------------------------------------------------------------
 // --- iphone ----------------------------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
-
-@mixin iphone
-{
-  @media only screen and (min-device-width: 320px) and (max-device-width: 480px)
-  {
+@mixin iphone {
+  @media only screen and (min-device-width: 320px) and (max-device-width: 480px) {
     @content;
   }
 }
 
-@mixin iphone3
-{
-  @media only screen and (min-device-width: 320px) and (max-device-width: 480px)
-  and (-webkit-device-pixel-ratio: 1)
-  {
+@mixin iphone3 {
+  @media only screen and (min-device-width: 320px) and (max-device-width: 480px) and (-webkit-device-pixel-ratio: 1) {
     @content;
   }
 }
 
-@mixin iphone3-portrait
-{
-  @media only screen and (min-device-width: 320px) and (max-device-width: 480px)
-  and (-webkit-device-pixel-ratio: 1) and (orientation:portrait)
-  {
+@mixin iphone3-portrait {
+  @media only screen and (min-device-width: 320px) and (max-device-width: 480px) and (-webkit-device-pixel-ratio: 1) and (orientation: portrait) {
     @content;
   }
 }
 
-@mixin iphone3-landscape
-{
-  @media only screen and (min-device-width: 320px) and (max-device-width: 480px)
-  and (-webkit-device-pixel-ratio: 1) and (orientation:landscape)
-  {
+@mixin iphone3-landscape {
+  @media only screen and (min-device-width: 320px) and (max-device-width: 480px) and (-webkit-device-pixel-ratio: 1) and (orientation: landscape) {
     @content;
   }
 }
@@ -140,29 +144,20 @@ $units: 1px !default;
 // --- iphone-retina ---------------------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
-@mixin iphone4
-{
-  @media only screen and (min-device-width: 320px) and (max-device-width: 480px)
-  and (-webkit-device-pixel-ratio: 2) and (device-aspect-ratio: 2/3)
-  {
+@mixin iphone4 {
+  @media only screen and (min-device-width: 320px) and (max-device-width: 480px) and (-webkit-device-pixel-ratio: 2) and (device-aspect-ratio: 2/3) {
     @content;
   }
 }
 
-@mixin iphone4-portrait
-{
-  @media only screen and (min-device-width: 320px) and (max-device-width: 480px)
-  and (-webkit-device-pixel-ratio: 2) and (device-aspect-ratio: 2/3) and (orientation:portrait)
-  {
+@mixin iphone4-portrait {
+  @media only screen and (min-device-width: 320px) and (max-device-width: 480px) and (-webkit-device-pixel-ratio: 2) and (device-aspect-ratio: 2/3) and (orientation: portrait) {
     @content;
   }
 }
 
-@mixin iphone4-landscape
-{
-  @media only screen and (min-device-width: 320px)  and (max-device-width: 480px)
-  and (-webkit-device-pixel-ratio: 2) and (device-aspect-ratio: 2/3) and (orientation:landscape)
-  {
+@mixin iphone4-landscape {
+  @media only screen and (min-device-width: 320px) and (max-device-width: 480px) and (-webkit-device-pixel-ratio: 2) and (device-aspect-ratio: 2/3) and (orientation: landscape) {
     @content;
   }
 }
@@ -171,30 +166,20 @@ $units: 1px !default;
 // --- iphone-5 --------------------------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
-@mixin iphone5
-{
-  @media only screen and (min-device-width: 320px) and (max-device-width: 568px)
-  and (-webkit-device-pixel-ratio: 2) and (device-aspect-ratio: 40/71)
-  {
+@mixin iphone5 {
+  @media only screen and (min-device-width: 320px) and (max-device-width: 568px) and (-webkit-device-pixel-ratio: 2) and (device-aspect-ratio: 40/71) {
     @content;
   }
 }
 
-@mixin iphone5-portrait
-{
-  @media only screen and (min-device-width: 320px) and (max-device-width: 568px)
-  and (-webkit-device-pixel-ratio: 2) and (device-aspect-ratio: 40/71) and (orientation:portrait)
-
-  {
+@mixin iphone5-portrait {
+  @media only screen and (min-device-width: 320px) and (max-device-width: 568px) and (-webkit-device-pixel-ratio: 2) and (device-aspect-ratio: 40/71) and (orientation: portrait) {
     @content;
   }
 }
 
-@mixin iphone5-landscape
-{
-  @media only screen and (min-device-width: 320px) and (max-device-width: 568px)
-  and (-webkit-device-pixel-ratio: 2) and (device-aspect-ratio: 40/71) and (orientation:landscape)
-  {
+@mixin iphone5-landscape {
+  @media only screen and (min-device-width: 320px) and (max-device-width: 568px) and (-webkit-device-pixel-ratio: 2) and (device-aspect-ratio: 40/71) and (orientation: landscape) {
     @content;
   }
 }
@@ -203,29 +188,20 @@ $units: 1px !default;
 // --- ipad + ipad mini ------------------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
-@mixin ipad
-{
-  @media only screen and (min-device-width: 768px) and (max-device-width: 1024px)
-  and (-webkit-device-pixel-ratio: 1)
-  {
+@mixin ipad {
+  @media only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-device-pixel-ratio: 1) {
     @content;
   }
 }
 
-@mixin ipad-portrait
-{
-  @media only screen and (min-device-width: 768px) and (max-device-width: 1024px)
-  and (-webkit-device-pixel-ratio: 1) and (orientation:portrait)
-  {
+@mixin ipad-portrait {
+  @media only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-device-pixel-ratio: 1) and (orientation: portrait) {
     @content;
   }
 }
 
-@mixin ipad-landscape
-{
-  @media only screen and (min-device-width: 768px) and (max-device-width: 1024px)
-  and (-webkit-device-pixel-ratio: 1) and (orientation:landscape)
-  {
+@mixin ipad-landscape {
+  @media only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-device-pixel-ratio: 1) and (orientation: landscape) {
     @content;
   }
 }
@@ -234,29 +210,20 @@ $units: 1px !default;
 // --- ipad-retina -----------------------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
-@mixin ipad-retina
-{
-  @media screen and (min-device-width: 768px) and (max-device-width: 1024px)
-  and (-webkit-device-pixel-ratio: 2)
-  {
+@mixin ipad-retina {
+  @media screen and (min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-device-pixel-ratio: 2) {
     @content;
   }
 }
 
-@mixin ipad-retina-portrait
-{
-  @media screen and (min-device-width: 768px) and (max-device-width: 1024px)
-  and (-webkit-device-pixel-ratio: 2) and (orientation:portrait)
-  {
+@mixin ipad-retina-portrait {
+  @media screen and (min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) {
     @content;
   }
 }
 
-@mixin ipad-retina-landscape
-{
-  @media screen and (min-device-width: 768px) and (max-device-width: 1024px)
-  and (-webkit-device-pixel-ratio: 2) and (orientation:landscape)
-  {
+@mixin ipad-retina-landscape {
+  @media screen and (min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape) {
     @content;
   }
 }
