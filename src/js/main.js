@@ -1,3 +1,8 @@
-//=require ../../node_modules/object-fit-images/dist/ofi.min.js
+import objectFitImages from "object-fit-images";
+import $ from "jquery";
+import App from "./partials/app";
 
-//=require partials/app.js
+$(document).ready(function() {
+  objectFitImages();
+  App();
+});

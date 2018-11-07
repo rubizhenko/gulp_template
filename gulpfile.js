@@ -21,8 +21,9 @@ const gulp = require("gulp"),
   svgo = require("gulp-svgo"),
   iconfont = require("gulp-iconfont"),
   iconfontCss = require("gulp-iconfont-css"),
-  babel = require("gulp-babel"),
-  reload = browserSync.reload;
+  reload = browserSync.reload,
+  named = require("vinyl-named"),
+  webpack = require("webpack-stream");
 
 var path = {
   src: {
@@ -149,15 +150,41 @@ gulp.task("js-lib:build", function() {
 gulp.task("js:build", function() {
   gulp
     .src(path.src.js)
-    .pipe(sourcemaps.init({ largeFile: true }))
-    .pipe(include())
+    .pipe(named())
     .pipe(
-      babel({
-        presets: ["env"]
+      webpack({
+        mode: "development",
+        devtool: "source-map",
+        module: {
+          rules: [
+            {
+              test: /\.(js)$/,
+              loader: "babel-loader",
+              exclude: /(node_modules)/,
+              query: {
+                presets: ["env"]
+              }
+            },
+            //for importing snapSVG
+            {
+              test: require.resolve("snapsvg/dist/snap.svg.js"),
+              use: "imports-loader?this=>window,fix=>module.exports=0"
+            }
+            //END: for importing snapSVG
+          ]
+        },
+        //for importing snapSVG
+        resolve: {
+          alias: {
+            snapsvg: "snapsvg/dist/snap.svg.js"
+          }
+        },
+        //END:for importing snapSVG
+        externals: {
+          jquery: "jQuery"
+        }
       })
     )
-
-    .pipe(sourcemaps.write("../maps"))
     .pipe(gulp.dest(path.build.js))
     .pipe(
       reload({
@@ -168,13 +195,41 @@ gulp.task("js:build", function() {
 gulp.task("js:deploy", function() {
   gulp
     .src(path.src.js)
-    .pipe(include())
+    .pipe(named())
     .pipe(
-      babel({
-        presets: ["env"]
+      webpack({
+        mode: "production",
+        devtool: "source-map",
+        module: {
+          rules: [
+            {
+              test: /\.(js)$/,
+              loader: "babel-loader",
+              exclude: /(node_modules)/,
+              query: {
+                presets: ["env"]
+              }
+            },
+            //for importing snapSVG
+            {
+              test: require.resolve("snapsvg/dist/snap.svg.js"),
+              use: "imports-loader?this=>window,fix=>module.exports=0"
+            }
+            //END: for importing snapSVG
+          ]
+        },
+        //for importing snapSVG
+        resolve: {
+          alias: {
+            snapsvg: "snapsvg/dist/snap.svg.js"
+          }
+        },
+        //END:for importing snapSVG
+        externals: {
+          jquery: "jQuery"
+        }
       })
     )
-    .pipe(uglify())
     .pipe(gulp.dest(path.deploy.js));
 });
 gulp.task("js-lib:deploy", function() {
