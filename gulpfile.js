@@ -139,7 +139,6 @@ gulp.task("json:deploy", function() {
 gulp.task("js-lib:build", function() {
   gulp
     .src(path.src.jsLib)
-    .pipe(uglify())
     .pipe(gulp.dest(path.build.js))
     .pipe(
       reload({
@@ -179,10 +178,7 @@ gulp.task("js:deploy", function() {
     .pipe(gulp.dest(path.deploy.js));
 });
 gulp.task("js-lib:deploy", function() {
-  gulp
-    .src(path.src.jsLib)
-    .pipe(uglify())
-    .pipe(gulp.dest(path.deploy.js));
+  gulp.src(path.src.jsLib).pipe(gulp.dest(path.deploy.js));
 });
 gulp.task("style:build", function() {
   var processors = [
