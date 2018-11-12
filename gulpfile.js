@@ -86,7 +86,7 @@ var config = {
   tunnel: false,
   host: "localhost",
   port: 9000,
-  logPrefix: "gulp-gulper"
+  logPrefix: "gulper"
 };
 
 gulp.task("html:build", function() {

@@ -2,7 +2,7 @@
 
 ---
 
-![Gulper](src/img/gulper.png)
+![Gulper](src/screen/gulper.png)
 
 Навигация
 
@@ -62,24 +62,22 @@ my-app/
 ```html
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="css/main.css" />
+    <title>Document title</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="css/main.css">
-  <title>Document title</title>
-</head>
+  <body>
+    <!-- =include template/header.html -->
 
-<body>
-  <!--=include template/header.html -->
+    <!-- =include template/footer.html -->
 
-  <!--=include template/footer.html -->
-
-  <!--=require img/svg/symbols.svg -->
-  <script src="js/main.js"></script>
-</body>
-
+    <!-- =require img/svg/symbols.svg -->
+    <script src="js/main.js"></script>
+  </body>
 </html>
 ```
 
@@ -124,7 +122,7 @@ export default function() {
 Пример использования в HTML:
 
 ```html
-  <i class="sprite sprite-new"></i>
+<i class="sprite sprite-new"></i>
 ```
 
 Так же в sass нужно прописать:
@@ -149,7 +147,7 @@ export default function() {
 Пример использования в HTML:
 
 ```html
-  <i class="fico fico-facebook"></i>
+<i class="fico fico-facebook"></i>
 ```
 
 ### SVG
@@ -163,7 +161,7 @@ SVG картинки нужно помещать в папку `svg/`, посл�
 Пример использования в HTML:
 
 ```html
-  <svg class="icon store"><use xlink:href="#store"></use></svg>
+<svg class="icon store"><use xlink:href="#store"></use></svg>
 ```
 
 ## Build проекта
