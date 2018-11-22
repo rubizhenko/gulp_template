@@ -93,6 +93,11 @@ gulp.task("html:build", function() {
     .src(path.src.html)
     .pipe(include())
     .pipe(htmlmin({ collapseWhitespace: true }))
+    .on("error", function(err) {
+      console.log(err.toString());
+
+      this.emit("end");
+    })
     .pipe(gulp.dest(path.build.html))
     .pipe(
       reload({
@@ -150,6 +155,11 @@ gulp.task("js:build", function() {
   gulp
     .src(path.src.js)
     .pipe(sourcemaps.init({ largeFile: true }))
+    .on("error", function(err) {
+      console.log(err.toString());
+
+      this.emit("end");
+    })
     .pipe(include())
     .pipe(
       babel({
