@@ -11,10 +11,12 @@ const pug = require("gulp-pug"),
   browserSync = require("browser-sync"),
   del = require("del"),
   named = require("vinyl-named"),
+  spritesmith = require("gulp.spritesmith-multi"),
   webpack = require("webpack-stream");
 
 const config = {
   pug: true,
+  sprites: false,
   reload: true
 };
 
@@ -23,6 +25,7 @@ const path = {
     html: "src/*" + (config.pug ? ".pug" : ".html"),
     style: "src/style/*.{sass,scss}",
     img: "src/img/**/*.*",
+    sprite: "src/sprite/**/*.{jpg,jpeg,png}",
     js: "src/js/*.js",
     fonts: "src/fonts/**/*.*",
     copy: "src/copy/**/*.*"
@@ -37,9 +40,9 @@ const path = {
   watch: {
     html: "src/**/*" + (config.pug ? ".pug" : ".html"),
     js: "src/js/**/*.js",
-    style: "src/style/**/*.+{scss,sass,css}",
+    style: "src/style/**/*.{scss,sass,css}",
     img: "src/img/**/*.+{jpg,jpeg,png,gif,ico}",
-    sprite: "src/sprite/**/*.+{jpg,jpeg,png}",
+    sprite: "src/sprite/**/*.{jpg,jpeg,png}",
     spriteSVG: "src/spriteSVG/*.svg",
     svg: "src/svg/*.svg",
     svgico: "src/svgico/*.svg",
@@ -129,6 +132,28 @@ function js() {
     );
 }
 
+function sprite(done) {
+  if (!config.sprites) return done();
+
+  const options = {
+    spritesmith: function(option, sprite) {
+      option.imgName = sprite + ".png";
+      option.cssName = sprite + ".sass";
+      option.imgPath = "../img/" + sprite + ".png";
+      option.padding = 10;
+      delete option.cssTemplate;
+    }
+  };
+  const spriteData = src(path.src.sprite).pipe(spritesmith(options));
+  spriteData.img.pipe(dest(path.build.img));
+  spriteData.css.pipe(dest("src/style/libs/")).pipe(
+    browserSync.reload({
+      stream: true
+    })
+  );
+  return done();
+}
+
 function fonts() {
   return src(path.src.fonts).pipe(dest(path.build.fonts));
 }
@@ -165,6 +190,9 @@ function watchSource() {
   watch(path.watch.fonts, series(fonts, reloadBrowser));
   watch(path.watch.copy, series(copy, reloadBrowser));
   watch(path.watch.img, series(images, reloadBrowser));
+  if (config.sprites) {
+    watch(path.watch.sprite, series(sprite, images, reloadBrowser));
+  }
 }
 function clean(done) {
   del.sync(path.build.root);
@@ -175,5 +203,9 @@ exports.html = html;
 exports.css = css;
 exports.js = js;
 exports.fonts = fonts;
-exports.default = series(clean, parallel(html, css, js, fonts, copy, images));
+exports.images = series(sprite, images);
+exports.default = series(
+  clean,
+  parallel(html, css, js, fonts, copy, exports.images)
+);
 exports.watch = series(exports.default, startServer, watchSource);
