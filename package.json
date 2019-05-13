@@ -4,7 +4,8 @@
   "description": "Gulper - Gulp starter",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "gulp watch"
   },
   "repository": {
     "type": "git",
@@ -19,6 +20,10 @@
   "devDependencies": {
     "autoprefixer": "^9.5.1",
     "babel-loader": "^8.0.6",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "@babel/core": "^7.4.4",
+    "@babel/preset-env": "^7.4.4",
     "browser-sync": "^2.26.5",
     "css-mqpacker": "^7.0.0",
     "del": "^4.1.1",

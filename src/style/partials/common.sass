@@ -11,12 +11,21 @@ body
 	&::before
 		display: block
 
-.block
+.blocks
 	display: flex
-	+r(991)
-		display: block
-
-
-+r(991)
-		.color
-			color: red
+	align-items: center
+	justify-content: space-around
+	.block
+		background: white
+		flex-basis: 200px
+		color: tomato
+		position: relative
+		&::before
+			content: ''
+			position: absolute
+			left: 0
+			right: 0
+			top: 0
+			bottom: 0
+			z-index: -1
+			box-shadow: 0px 0px 30px 15px red

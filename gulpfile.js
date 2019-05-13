@@ -14,8 +14,7 @@ const pug = require("gulp-pug"),
   webpack = require("webpack-stream");
 
 const config = {
-  pug: false,
-
+  pug: true,
   reload: true
 };
 
@@ -23,33 +22,40 @@ const path = {
   src: {
     html: "src/*" + (config.pug ? ".pug" : ".html"),
     style: "src/style/*.{sass,scss}",
+    img: "src/img/**/*.*",
     js: "src/js/*.js",
-    fonts: "src/fonts/**/*.*"
+    fonts: "src/fonts/**/*.*",
+    copy: "src/copy/**/*.*"
   },
   build: {
-    html: "build/",
+    root: "build/",
     style: "build/css/",
     fonts: "build/fonts/",
-    js: "build/js/"
+    js: "build/js/",
+    img: "build/img/"
   },
   watch: {
     html: "src/**/*" + (config.pug ? ".pug" : ".html"),
     js: "src/js/**/*.js",
-    style: "src/style/**/*.+(scss|sass|css)",
-    img: "src/img/**/*.+(jpg|jpeg|png|gif|ico)",
-    sprite: "src/sprite/**/*.+(jpg|jpeg|png)",
+    style: "src/style/**/*.+{scss,sass,css}",
+    img: "src/img/**/*.+{jpg,jpeg,png,gif,ico}",
+    sprite: "src/sprite/**/*.+{jpg,jpeg,png}",
     spriteSVG: "src/spriteSVG/*.svg",
     svg: "src/svg/*.svg",
     svgico: "src/svgico/*.svg",
     favicon: "src/**/*.*",
-    fonts: "src/fonts/**/*.*"
+    fonts: "src/fonts/**/*.*",
+    copy: "src/copy/**/*.*"
   }
 };
 
 function html() {
   return src(path.src.html)
     .pipe(config.pug ? pug() : include())
-    .pipe(dest(path.build.html))
+    .on("error", function(err) {
+      this.emit("end");
+    })
+    .pipe(dest(path.build.root))
     .pipe(
       browserSync.reload({
         stream: true
@@ -100,7 +106,8 @@ function js() {
               loader: "babel-loader",
               exclude: /(node_modules)/,
               query: {
-                presets: ["env"]
+                presets: ["env"],
+                plugins: ["transform-object-rest-spread"]
               }
             }
           ]
@@ -111,6 +118,9 @@ function js() {
         }
       })
     )
+    .on("error", function(err) {
+      this.emit("end");
+    })
     .pipe(dest(path.build.js))
     .pipe(
       browserSync.reload({
@@ -122,12 +132,18 @@ function js() {
 function fonts() {
   return src(path.src.fonts).pipe(dest(path.build.fonts));
 }
+function images() {
+  return src(path.src.img).pipe(dest(path.build.img));
+}
+function copy() {
+  return src(path.src.copy).pipe(dest(path.build.root));
+}
 
 function startServer(done) {
   if (!config.reload) return done();
   browserSync.init({
     server: {
-      baseDir: path.build.html
+      baseDir: path.build.root
     },
     tunnel: false,
     host: "localhost",
@@ -147,14 +163,17 @@ function watchSource() {
   watch(path.watch.style, series(css, reloadBrowser));
   watch(path.watch.js, series(js, reloadBrowser));
   watch(path.watch.fonts, series(fonts, reloadBrowser));
+  watch(path.watch.copy, series(copy, reloadBrowser));
+  watch(path.watch.img, series(images, reloadBrowser));
 }
 function clean(done) {
-  del.sync("build/");
+  del.sync(path.build.root);
   return done();
 }
 
 exports.html = html;
 exports.css = css;
 exports.js = js;
-exports.default = series(clean, parallel(html, css, js, fonts));
+exports.fonts = fonts;
+exports.default = series(clean, parallel(html, css, js, fonts, copy, images));
 exports.watch = series(exports.default, startServer, watchSource);
