@@ -11,12 +11,14 @@ const pug = require("gulp-pug"),
   browserSync = require("browser-sync"),
   del = require("del"),
   named = require("vinyl-named"),
+  babel = require("gulp-babel"),
   spritesmith = require("gulp.spritesmith-multi"),
   webpack = require("webpack-stream");
 
 const config = {
   pug: true,
   sprites: false,
+  webpackJS: true,
   reload: true
 };
 
@@ -96,40 +98,61 @@ function css() {
 }
 
 function js() {
-  return src(path.src.js)
-    .pipe(named())
-    .pipe(
-      webpack({
-        mode: "development",
-        devtool: "source-map",
-        module: {
-          rules: [
-            {
-              test: /\.(js)$/,
-              loader: "babel-loader",
-              exclude: /(node_modules)/,
-              query: {
-                presets: ["env"],
-                plugins: ["transform-object-rest-spread"]
+  if (config.webpackJS) {
+    return src(path.src.js)
+      .pipe(named())
+      .pipe(
+        webpack({
+          mode: "development",
+          devtool: "source-map",
+          module: {
+            rules: [
+              {
+                test: /\.(js)$/,
+                loader: "babel-loader",
+                exclude: /(node_modules)/,
+                query: {
+                  presets: ["@babel/env"],
+                  plugins: ["transform-object-rest-spread"]
+                }
               }
-            }
-          ]
-        },
+            ]
+          },
 
-        externals: {
-          jquery: "jQuery"
-        }
+          externals: {
+            jquery: "jQuery"
+          }
+        })
+      )
+      .on("error", function(err) {
+        this.emit("end");
       })
-    )
-    .on("error", function(err) {
-      this.emit("end");
-    })
-    .pipe(dest(path.build.js))
-    .pipe(
-      browserSync.reload({
-        stream: true
+      .pipe(dest(path.build.js))
+      .pipe(
+        browserSync.reload({
+          stream: true
+        })
+      );
+  } else {
+    return src(path.src.js)
+      .pipe(sourcemaps.init({ largeFile: true }))
+      .pipe(include())
+      .pipe(
+        babel({
+          presets: ["@babel/env"]
+        })
+      )
+      .pipe(sourcemaps.write("../maps"))
+      .pipe(dest(path.build.js))
+      .on("error", function(err) {
+        this.emit("end");
       })
-    );
+      .pipe(
+        browserSync.reload({
+          stream: true
+        })
+      );
+  }
 }
 
 function sprite(done) {
