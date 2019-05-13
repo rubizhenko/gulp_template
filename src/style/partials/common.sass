@@ -1,7 +1,8 @@
 body
-	background: $mainColor
+	background: tomato
+	color: white
 	font-family: Arial, Helvetica, sans-serif
-	font-size: 14px
+	font-size: 20px
 
 // Font icons
 .fico
@@ -10,3 +11,12 @@ body
 	&::before
 		display: block
 
+.block
+	display: flex
+	+r(991)
+		display: block
+
+
++r(991)
+		.color
+			color: red
