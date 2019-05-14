@@ -12,12 +12,15 @@ const pug = require("gulp-pug"),
   del = require("del"),
   named = require("vinyl-named"),
   babel = require("gulp-babel"),
+  wait = require("gulp-wait"),
   spritesmith = require("gulp.spritesmith-multi"),
+  svgSprite = require("gulp-svg-sprites"),
   webpack = require("webpack-stream");
 
 const config = {
   pug: true,
   sprites: false,
+  spritesSVG: true,
   webpackJS: true,
   reload: true
 };
@@ -28,6 +31,7 @@ const path = {
     style: "src/style/*.{sass,scss}",
     img: "src/img/**/*.*",
     sprite: "src/sprite/**/*.{jpg,jpeg,png}",
+    spriteSVG: "src/sprite_svg/*.svg",
     js: "src/js/*.js",
     fonts: "src/fonts/**/*.*",
     copy: "src/copy/**/*.*"
@@ -45,7 +49,7 @@ const path = {
     style: "src/style/**/*.{scss,sass,css}",
     img: "src/img/**/*.+{jpg,jpeg,png,gif,ico}",
     sprite: "src/sprite/**/*.{jpg,jpeg,png}",
-    spriteSVG: "src/spriteSVG/*.svg",
+    spriteSVG: "src/sprite_svg/*.svg",
     svg: "src/svg/*.svg",
     svgico: "src/svgico/*.svg",
     favicon: "src/**/*.*",
@@ -176,6 +180,46 @@ function sprite(done) {
   );
   return done();
 }
+function spriteSVG(done) {
+  if (!config.spritesSVG) return done();
+  return src(path.src.spriteSVG)
+    .pipe(wait(3000))
+    .pipe(
+      svgSprite({
+        mode: "symbols",
+        preview: {
+          symbols: "../../preview/symbols.html"
+        },
+        selector: "%f",
+        svg: {
+          symbols: "symbols.svg"
+        },
+        transformData: function(data, config) {
+          data.svg.map(function(item) {
+            item.data = item.data.replace(
+              /id=\"([^\"]+)\"/gm,
+              'id="' + item.name + '-$1"'
+            );
+            item.data = item.data.replace(
+              /fill=\"url\(\#([^\"]+)\)\"/gm,
+              'fill="url(#' + item.name + '-$1)"'
+            );
+            item.data = item.data.replace(
+              /mask=\"url\(\#([^\"]+)\)\"/gm,
+              'mask="url(#' + item.name + '-$1)"'
+            );
+            item.data = item.data.replace(
+              'id="' + item.name + "-" + item.name + '"',
+              'id="' + item.name + '"'
+            );
+            return item;
+          });
+          return data;
+        }
+      })
+    )
+    .pipe(dest("src/img/svg"));
+}
 
 function fonts() {
   return src(path.src.fonts).pipe(dest(path.build.fonts));
@@ -216,6 +260,9 @@ function watchSource() {
   if (config.sprites) {
     watch(path.watch.sprite, series(sprite, images, reloadBrowser));
   }
+  if (config.spritesSVG) {
+    watch(path.watch.spriteSVG, series(spriteSVG, images, reloadBrowser));
+  }
 }
 function clean(done) {
   del.sync(path.build.root);
@@ -226,7 +273,11 @@ exports.html = html;
 exports.css = css;
 exports.js = js;
 exports.fonts = fonts;
-exports.images = series(sprite, images);
+exports.images = series(
+  config.sprites ? sprite : done => done(),
+  config.spritesSVG ? spriteSVG : done => done(),
+  images
+);
 exports.default = series(
   clean,
   parallel(html, css, js, fonts, copy, exports.images)

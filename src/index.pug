@@ -1,22 +1,30 @@
 doctype html
 html(lang='en')
- head
-   title My custom title
-   link(rel="stylesheet", href="css/main.css")
-   link(rel="shortcut icon", href="./favicon.ico", type="image/x-icon")
-   meta(name="viewport", content="width=device-width, initial-scale=1.0")
-   meta(http-equiv="X-UA-Compatible", content="IE=11")
- body
-  style(type='text/css').
-    .back{
-      color: red
-    }
-  h1 Pug Examples
-  div.container(data-block="12", data-param="text")
-  p Cool Pug example!
-  img(src="img/ava.jpg", alt="avatar")
-  .blocks
-    .block text
-    .block text
-    .block text
-  script(src="js/main.js")
+  head
+    title My custom title
+    link(rel="stylesheet", href="css/main.css")
+    link(rel="shortcut icon", href="./favicon.ico", type="image/x-icon")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    meta(http-equiv="X-UA-Compatible", content="IE=11")
+  body
+    style(type='text/css').
+      .back{
+        color: red
+      }
+    h1 Pug Examples
+    div.container(data-block="12", data-param="text")
+    p Cool Pug example!
+    img(src="img/ava.jpg", alt="avatar")
+    .blocks
+      .block text
+      .block text
+      .block text
+    script(src="js/main.js")
+
+    svg.icon.student
+      use(xlink:href="#student")
+
+    svg.icon.logo
+      use(xlink:href="#logo")
+
+    include img/svg/symbols.svg
