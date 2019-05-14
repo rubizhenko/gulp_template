@@ -1,36 +1,9 @@
-doctype html
-html(lang='en')
+<!DOCTYPE html>
+html(lang="en")
   head
-    title My custom title
-    link(rel="stylesheet", href="css/main.css")
-    link(rel="shortcut icon", href="./favicon.ico", type="image/x-icon")
+    meta(charset="UTF-8")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    meta(http-equiv="X-UA-Compatible", content="IE=11")
+    meta(http-equiv="X-UA-Compatible", content="ie=edge")
+    title Document
   body
-    style(type='text/css').
-      .back{
-        color: red
-      }
-    h1 Pug Examples
-    div.container(data-block="12", data-param="text")
-    p Cool Pug example!
-    img(src="img/ava.jpg", alt="avatar")
-    .blocks
-      span.block text
-        p.some-text asdasdasd
-      .block text
-      .block text
-
-    i.fico.fico-briefcase
-    i.fico.fico-enterprise
-    i.fico.fico-team
-    i.fico.fico-presentation
-    i.fico.fico-vector
-
-
-    - for (var x = 0; x < 3; x++)
-      li item
-
-    include templates/part.html
-
-    script(src="js/main.js")
+    h1 Hello from PUG!

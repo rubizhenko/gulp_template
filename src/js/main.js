@@ -1,11 +1,7 @@
-import "./partials/chunk.js";
+// Main JS module
+// objectFitImages polyfill
+import objectFitImages from "object-fit-images";
 
-console.log(`${1 + 2}` + "hello world");
-
-let a = 5,
-  b = 12;
-console.log(`a=${a}, b=${b}`);
-
-[b, a] = [a, b];
-
-console.log(`a=${a}, b=${b}`);
+$(function() {
+  objectFitImages();
+});
