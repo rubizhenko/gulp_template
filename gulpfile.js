@@ -205,6 +205,10 @@ function spriteSVG(done) {
               'fill="url(#' + item.name + '-$1)"'
             );
             item.data = item.data.replace(
+              /stroke=\"url\(\#([^\"]+)\)\"/gm,
+              'stroke="url(#' + item.name + '-$1)"'
+            );
+            item.data = item.data.replace(
               /mask=\"url\(\#([^\"]+)\)\"/gm,
               'mask="url(#' + item.name + '-$1)"'
             );
