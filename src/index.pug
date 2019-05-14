@@ -16,7 +16,21 @@ html(lang='en')
     p Cool Pug example!
     img(src="img/ava.jpg", alt="avatar")
     .blocks
+      span.block text
+        p.some-text asdasdasd
       .block text
       .block text
-      .block text
+
+    i.fico.fico-briefcase
+    i.fico.fico-enterprise
+    i.fico.fico-team
+    i.fico.fico-presentation
+    i.fico.fico-vector
+
+
+    - for (var x = 0; x < 3; x++)
+      li item
+
+    include templates/part.html
+
     script(src="js/main.js")

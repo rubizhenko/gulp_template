@@ -5,7 +5,7 @@ const pug = require("gulp-pug"),
   sass = require("gulp-sass"),
   postcss = require("gulp-postcss"),
   autoprefixer = require("autoprefixer"),
-  mqpacker = require("css-mqpacker"),
+  gcmq = require("gulp-group-css-media-queries"),
   sourcemaps = require("gulp-sourcemaps"),
   cleanCSS = require("gulp-clean-css"),
   browserSync = require("browser-sync"),
@@ -15,12 +15,16 @@ const pug = require("gulp-pug"),
   wait = require("gulp-wait"),
   spritesmith = require("gulp.spritesmith-multi"),
   svgSprite = require("gulp-svg-sprites"),
+  iconfont = require("gulp-iconfont"),
+  svgo = require("gulp-svgo"),
+  iconfontCss = require("gulp-iconfont-css"),
   webpack = require("webpack-stream");
 
 const config = {
   pug: true,
-  sprites: false,
+  sprites: true,
   spritesSVG: true,
+  fico: true,
   webpackJS: true,
   reload: true
 };
@@ -32,6 +36,7 @@ const path = {
     img: "src/img/**/*.*",
     sprite: "src/sprite/**/*.{jpg,jpeg,png}",
     spriteSVG: "src/sprite_svg/*.svg",
+    svgico: "src/svgico/*.svg",
     js: "src/js/*.js",
     fonts: "src/fonts/**/*.*",
     copy: "src/copy/**/*.*"
@@ -42,6 +47,13 @@ const path = {
     fonts: "build/fonts/",
     js: "build/js/",
     img: "build/img/"
+  },
+  deploy: {
+    root: "www/",
+    js: "www/js/",
+    style: "www/css/",
+    img: "www/img/",
+    fonts: "www/fonts/"
   },
   watch: {
     html: "src/**/*" + (config.pug ? ".pug" : ".html"),
@@ -71,26 +83,27 @@ function html() {
       })
     );
 }
+function htmlDeploy() {
+  return src(path.src.html)
+    .pipe(config.pug ? pug() : include())
+    .on("error", function(err) {
+      this.emit("end");
+    })
+    .pipe(dest(path.deploy.root));
+}
 
 function css() {
   const processors = [
     autoprefixer({
       browsers: ["> 5%"],
       cascade: false
-    }),
-    mqpacker({
-      sort: function(a, b) {
-        a = a.replace(/\D/g, "");
-        b = b.replace(/\D/g, "");
-        return b - a;
-        // replace this with a-b for Mobile First approach
-      }
     })
   ];
   return src(path.src.style)
     .pipe(sourcemaps.init({ largeFile: true }))
     .pipe(sass().on("error", sass.logError))
     .pipe(postcss(processors))
+    .pipe(gcmq())
     .pipe(cleanCSS())
     .pipe(sourcemaps.write("../maps"))
     .pipe(dest(path.build.style))
@@ -99,6 +112,20 @@ function css() {
         stream: true
       })
     );
+}
+function cssDeploy() {
+  const processors = [
+    autoprefixer({
+      browsers: ["> 5%"],
+      cascade: false
+    })
+  ];
+  return src(path.src.style)
+    .pipe(sass().on("error", sass.logError))
+    .pipe(postcss(processors))
+    .pipe(gcmq())
+    .pipe(cleanCSS())
+    .pipe(dest(path.deploy.style));
 }
 
 function js() {
@@ -156,6 +183,50 @@ function js() {
           stream: true
         })
       );
+  }
+}
+function jsDeploy() {
+  if (config.webpackJS) {
+    return src(path.src.js)
+      .pipe(named())
+      .pipe(
+        webpack({
+          mode: "production",
+          module: {
+            rules: [
+              {
+                test: /\.(js)$/,
+                loader: "babel-loader",
+                exclude: /(node_modules)/,
+                query: {
+                  presets: ["@babel/env"],
+                  plugins: ["transform-object-rest-spread"]
+                }
+              }
+            ]
+          },
+
+          externals: {
+            jquery: "jQuery"
+          }
+        })
+      )
+      .on("error", function(err) {
+        this.emit("end");
+      })
+      .pipe(dest(path.deploy.js));
+  } else {
+    return src(path.src.js)
+      .pipe(include())
+      .pipe(
+        babel({
+          presets: ["@babel/env"]
+        })
+      )
+      .pipe(dest(path.deploy.js))
+      .on("error", function(err) {
+        this.emit("end");
+      });
   }
 }
 
@@ -222,19 +293,61 @@ function spriteSVG(done) {
         }
       })
     )
+    .on("error", function(err) {
+      this.emit("end");
+    })
     .pipe(dest("src/img/svg"));
+}
+
+function fico(done) {
+  if (!config.fico) return done();
+  return src(path.src.svgico)
+    .pipe(wait(1000))
+    .pipe(svgo())
+    .pipe(
+      iconfontCss({
+        fontName: "fico", // required
+        target: "src/style/partials/font-icons.scss",
+        targetPath: "../../style/partials/font-icons.scss",
+        fontPath: "../fonts/icons/",
+        cssClass: "fico"
+      })
+    )
+    .pipe(
+      iconfont({
+        fontName: "fico", // required
+        prependUnicode: true, // recommended option
+        formats: ["ttf", "eot", "woff", "woff2", "svg"], // default, 'woff2' and 'svg' are available
+        normalize: true,
+        fontHeight: 1001,
+        fontStyle: "normal",
+        fontWeight: "normal"
+      })
+    )
+    .on("error", function(err) {
+      this.emit("end");
+    })
+    .pipe(dest("src/fonts/icons"));
 }
 
 function fonts() {
   return src(path.src.fonts).pipe(dest(path.build.fonts));
 }
+function fontsDeploy() {
+  return src(path.src.fonts).pipe(dest(path.deploy.fonts));
+}
 function images() {
   return src(path.src.img).pipe(dest(path.build.img));
+}
+function imagesDeploy() {
+  return src(path.src.img).pipe(dest(path.deploy.img));
 }
 function copy() {
   return src(path.src.copy).pipe(dest(path.build.root));
 }
-
+function copyDeploy() {
+  return src(path.src.copy).pipe(dest(path.deploy.root));
+}
 function startServer(done) {
   if (!config.reload) return done();
   browserSync.init({
@@ -267,9 +380,16 @@ function watchSource() {
   if (config.spritesSVG) {
     watch(path.watch.spriteSVG, series(spriteSVG, images, reloadBrowser));
   }
+  if (config.fico) {
+    watch(path.watch.svgico, series(fico, reloadBrowser));
+  }
 }
 function clean(done) {
   del.sync(path.build.root);
+  return done();
+}
+function cleanDeploy(done) {
+  del.sync(path.deploy.root);
   return done();
 }
 
@@ -284,6 +404,20 @@ exports.images = series(
 );
 exports.default = series(
   clean,
-  parallel(html, css, js, fonts, copy, exports.images)
+  parallel(html, css, js, fico, fonts, copy, exports.images)
+);
+exports.deploy = series(
+  cleanDeploy,
+  fico,
+  config.sprites ? sprite : done => done(),
+  config.spritesSVG ? spriteSVG : done => done(),
+  parallel(
+    htmlDeploy,
+    cssDeploy,
+    jsDeploy,
+    fontsDeploy,
+    copyDeploy,
+    imagesDeploy
+  )
 );
 exports.watch = series(exports.default, startServer, watchSource);
