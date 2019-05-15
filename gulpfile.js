@@ -144,7 +144,7 @@ function js() {
                 exclude: /(node_modules)/,
                 query: {
                   presets: ["@babel/env"],
-                  plugins: ["transform-object-rest-spread"]
+                  plugins: ["@babel/plugin-proposal-object-rest-spread"]
                 }
               }
             ]
@@ -200,7 +200,7 @@ function jsDeploy() {
                 exclude: /(node_modules)/,
                 query: {
                   presets: ["@babel/env"],
-                  plugins: ["transform-object-rest-spread"]
+                  plugins: ["@babel/plugin-proposal-object-rest-spread"]
                 }
               }
             ]
