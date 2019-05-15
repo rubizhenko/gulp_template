@@ -74,6 +74,7 @@ function html() {
   return src(path.src.html)
     .pipe(config.pug ? pug() : include())
     .on("error", function(err) {
+      console.log(err.message);
       this.emit("end");
     })
     .pipe(dest(path.build.root))
@@ -87,6 +88,7 @@ function htmlDeploy() {
   return src(path.src.html)
     .pipe(config.pug ? pug() : include())
     .on("error", function(err) {
+      console.log(err.message);
       this.emit("end");
     })
     .pipe(dest(path.deploy.root));
