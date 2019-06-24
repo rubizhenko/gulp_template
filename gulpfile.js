@@ -1,3 +1,4 @@
+"use strict";
 const { src, dest, parallel, series, watch } = require("gulp");
 
 const autoprefixer = require("autoprefixer"),
@@ -5,23 +6,24 @@ const autoprefixer = require("autoprefixer"),
   browserSync = require("browser-sync"),
   cleanCSS = require("gulp-clean-css"),
   del = require("del"),
-  gcmq = require("gulp-group-css-media-queries"),
   iconfont = require("gulp-iconfont"),
   iconfontCss = require("gulp-iconfont-css"),
   include = require("gulp-include"),
   named = require("vinyl-named"),
+  svgo = require("gulp-svgo"),
   postcss = require("gulp-postcss"),
+  mqpacker = require("css-mqpacker"),
   sass = require("gulp-sass"),
   sourcemaps = require("gulp-sourcemaps"),
   spritesmith = require("gulp.spritesmith-multi"),
-  svgo = require("gulp-svgo"),
   svgSprite = require("gulp-svg-sprites"),
   wait = require("gulp-wait"),
   webpack = require("webpack-stream"),
-  pug = require("gulp-pug");
+  pug = require("gulp-pug"),
+  shell = require("shelljs");
 
 const config = {
-  pug: true,
+  pug: false,
   sprites: true,
   spritesSVG: true,
   fico: true,
@@ -33,12 +35,14 @@ const path = {
   src: {
     html: "src/*" + (config.pug ? ".pug" : ".html"),
     style: "src/style/*.{sass,scss}",
+    bootstrap: "src/bootstrap/bootstrap.scss",
     img: "src/img/**/*.*",
     sprite: "src/sprite/**/*.{jpg,jpeg,png}",
     spriteSVG: "src/sprite_svg/*.svg",
     svgico: "src/svgico/*.svg",
     js: "src/js/*.js",
     fonts: "src/fonts/**/*.*",
+    svg: "src/svg/**/*.*",
     copy: "src/copy/**/*.*"
   },
   build: {
@@ -46,19 +50,22 @@ const path = {
     style: "build/css/",
     fonts: "build/fonts/",
     js: "build/js/",
-    img: "build/img/"
+    img: "build/img/",
+    svg: "build/img/svg"
   },
   deploy: {
     root: "www/",
     js: "www/js/",
     style: "www/css/",
     img: "www/img/",
+    svg: "www/img/svg",
     fonts: "www/fonts/"
   },
   watch: {
     html: "src/**/*" + (config.pug ? ".pug" : ".html"),
     js: "src/js/**/*.js",
     style: "src/style/**/*.{scss,sass,css}",
+    bootstrap: "src/bootstrap/*.+(scss|sass)",
     img: "src/img/**/*.+{jpg,jpeg,png,gif,ico}",
     sprite: "src/sprite/**/*.{jpg,jpeg,png}",
     spriteSVG: "src/sprite_svg/*.svg",
@@ -69,6 +76,20 @@ const path = {
     copy: "src/copy/**/*.*"
   }
 };
+
+const processors = [
+  autoprefixer({
+    cascade: false
+  }),
+  mqpacker({
+    sort: function(a, b) {
+      a = a.replace(/\D/g, "");
+      b = b.replace(/\D/g, "");
+      return b - a;
+      // replace this with a-b for Mobile First approach
+    }
+  })
+];
 
 function html() {
   return src(path.src.html)
@@ -95,17 +116,10 @@ function htmlDeploy() {
 }
 
 function css() {
-  const processors = [
-    autoprefixer({
-      browsers: ["> 5%"],
-      cascade: false
-    })
-  ];
   return src(path.src.style)
     .pipe(sourcemaps.init({ largeFile: true }))
     .pipe(sass().on("error", sass.logError))
     .pipe(postcss(processors))
-    .pipe(gcmq())
     .pipe(cleanCSS())
     .pipe(sourcemaps.write("../maps"))
     .pipe(dest(path.build.style))
@@ -116,16 +130,9 @@ function css() {
     );
 }
 function cssDeploy() {
-  const processors = [
-    autoprefixer({
-      browsers: ["> 5%"],
-      cascade: false
-    })
-  ];
   return src(path.src.style)
     .pipe(sass().on("error", sass.logError))
     .pipe(postcss(processors))
-    .pipe(gcmq())
     .pipe(cleanCSS())
     .pipe(dest(path.deploy.style));
 }
@@ -344,6 +351,16 @@ function images() {
 function imagesDeploy() {
   return src(path.src.img).pipe(dest(path.deploy.img));
 }
+function svg() {
+  return src(path.src.svg)
+    .pipe(svgo())
+    .pipe(dest(path.build.svg));
+}
+function svgDeploy() {
+  return src(path.src.svg)
+    .pipe(svgo())
+    .pipe(dest(path.deploy.svg));
+}
 function copy() {
   return src(path.src.copy).pipe(dest(path.build.root));
 }
@@ -369,6 +386,27 @@ function reloadBrowser(done) {
   browserSync.reload();
   done();
 }
+
+function push() {
+  const commitMessage = "Auto-commit " + new Date().getTime();
+
+  if (!shell.which("git")) {
+    shell.echo("Sorry, this script requires git");
+    shell.exit(1);
+  } else {
+    shell.cd("www");
+    if (
+      shell.exec(`git add . && git commit -m "${commitMessage}"`).code !== 0
+    ) {
+      shell.echo("Error: Git commit failed");
+      shell.exit(1);
+    } else {
+      shell.echo("Success commit");
+      shell.exec("git push");
+    }
+  }
+}
+
 function watchSource() {
   watch(path.watch.html, series(html, reloadBrowser));
   watch(path.watch.style, series(css, reloadBrowser));
@@ -376,6 +414,7 @@ function watchSource() {
   watch(path.watch.fonts, series(fonts, reloadBrowser));
   watch(path.watch.copy, series(copy, reloadBrowser));
   watch(path.watch.img, series(images, reloadBrowser));
+  watch(path.watch.svg, series(svg, reloadBrowser));
   if (config.sprites) {
     watch(path.watch.sprite, series(sprite, images, reloadBrowser));
   }
@@ -399,6 +438,7 @@ exports.html = html;
 exports.css = css;
 exports.js = js;
 exports.fonts = fonts;
+exports.push = push;
 exports.images = series(
   config.sprites ? sprite : done => done(),
   config.spritesSVG ? spriteSVG : done => done(),
@@ -406,10 +446,9 @@ exports.images = series(
 );
 exports.default = series(
   clean,
-  parallel(html, css, js, fico, fonts, copy, exports.images)
+  parallel(html, css, js, fico, fonts, copy, exports.images, svg)
 );
 exports.deploy = series(
-  cleanDeploy,
   fico,
   config.sprites ? sprite : done => done(),
   config.spritesSVG ? spriteSVG : done => done(),
@@ -419,7 +458,9 @@ exports.deploy = series(
     jsDeploy,
     fontsDeploy,
     copyDeploy,
-    imagesDeploy
+    imagesDeploy,
+    svgDeploy
   )
 );
+
 exports.watch = series(exports.default, startServer, watchSource);
