@@ -1,5 +1,7 @@
 "use strict";
 const { src, dest, parallel, series, watch } = require("gulp");
+const nodePath = require("path");
+const fs = require("fs");
 
 const autoprefixer = require("autoprefixer"),
   babel = require("gulp-babel"),
@@ -19,16 +21,20 @@ const autoprefixer = require("autoprefixer"),
   svgSprite = require("gulp-svg-sprites"),
   wait = require("gulp-wait"),
   webpack = require("webpack-stream"),
-  pug = require("gulp-pug"),
-  shell = require("shelljs");
+  pug = require("gulp-pug-i18n"),
+  shell = require("shelljs"),
+  gulpRevAll = require("gulp-rev-all");
+
+const DEFAULT_LOCALE = "ru";
 
 const config = {
-  pug: false,
-  sprites: true,
-  spritesSVG: true,
-  fico: true,
-  webpackJS: true,
-  reload: true
+  pug: true, // Enable pug view engine
+  sprites: true, // use png stprites in project
+  spritesSVG: true, // use SVG stprites in project
+  fico: true, // use font icons
+  webpackJS: true, // build JS using webpack
+  reload: true, // auto browser reload,
+  commonLocalesRoot: false // true - .html files for all localizations in root folder, false - localizations in {{locale}}/ folder
 };
 
 const path = {
@@ -63,6 +69,7 @@ const path = {
   },
   watch: {
     html: "src/**/*" + (config.pug ? ".pug" : ".html"),
+    locales: "src/locale/*",
     js: "src/js/**/*.js",
     style: "src/style/**/*.{scss,sass,css}",
     bootstrap: "src/bootstrap/*.+(scss|sass)",
@@ -93,7 +100,29 @@ const processors = [
 
 function html() {
   return src(path.src.html)
-    .pipe(config.pug ? pug() : include())
+    .pipe(
+      config.pug
+        ? pug({
+            i18n: {
+              namespace: "LANG",
+              locales: "src/locale/*", // locales: en.yml, de.json,
+              filename: config.commonLocalesRoot
+                ? "{{basename}}.{{lang}}.html"
+                : "{{{lang}}/}{{basename}}.html",
+              default: DEFAULT_LOCALE
+            },
+            data: {
+              url(LANG, baseUrl) {
+                const locale = LANG.locale || LANG;
+
+                const urlLocale = DEFAULT_LOCALE === locale ? "" : locale;
+                return nodePath.join(`/${urlLocale}/`, baseUrl);
+              }
+            },
+            pretty: true // Pug option
+          })
+        : include()
+    )
     .on("error", function(err) {
       console.log(err.message);
       this.emit("end");
@@ -107,7 +136,26 @@ function html() {
 }
 function htmlDeploy() {
   return src(path.src.html)
-    .pipe(config.pug ? pug() : include())
+    .pipe(
+      config.pug
+        ? pug({
+            i18n: {
+              namespace: "LANG",
+              locales: "src/locale/*", // locales: en.yml, de.json,
+              filename: "{{{lang}}/}{{basename}}.html",
+              default: DEFAULT_LOCALE
+            },
+            data: {
+              url(LANG, baseUrl) {
+                const locale = LANG.locale || LANG;
+                const urlLocale = DEFAULT_LOCALE === locale ? "" : locale;
+                return nodePath.join(`/${urlLocale}/`, baseUrl);
+              }
+            },
+            pretty: true // Pug option
+          })
+        : include()
+    )
     .on("error", function(err) {
       console.log(err.message);
       this.emit("end");
@@ -118,7 +166,8 @@ function htmlDeploy() {
 function css() {
   return src(path.src.style)
     .pipe(sourcemaps.init({ largeFile: true }))
-    .pipe(sass().on("error", sass.logError))
+    .pipe(wait(200))
+    .pipe(sass({ includePaths: ["node_modules/"] }).on("error", sass.logError))
     .pipe(postcss(processors))
     .pipe(cleanCSS())
     .pipe(sourcemaps.write("../maps"))
@@ -131,7 +180,8 @@ function css() {
 }
 function cssDeploy() {
   return src(path.src.style)
-    .pipe(sass().on("error", sass.logError))
+    .pipe(wait(200))
+    .pipe(sass({ includePaths: ["node_modules/"] }).on("error", sass.logError))
     .pipe(postcss(processors))
     .pipe(cleanCSS())
     .pipe(dest(path.deploy.style));
@@ -242,6 +292,11 @@ function jsDeploy() {
 function sprite(done) {
   if (!config.sprites) return done();
 
+  const spritePath = "src/style/libs/sprite.sass";
+  if (!fs.existsSync(spritePath)) {
+    fs.writeFileSync(spritePath, "");
+  }
+
   const options = {
     spritesmith: function(option, sprite) {
       option.imgName = sprite + ".png";
@@ -310,13 +365,18 @@ function spriteSVG(done) {
 
 function fico(done) {
   if (!config.fico) return done();
+  const iconsPath = "src/style/partials/font-icons.scss";
+  if (!fs.existsSync(iconsPath)) {
+    fs.writeFileSync(iconsPath, "");
+  }
+
   return src(path.src.svgico)
     .pipe(wait(1000))
     .pipe(svgo())
     .pipe(
       iconfontCss({
         fontName: "fico", // required
-        target: "src/style/partials/font-icons.scss",
+        target: iconsPath,
         targetPath: "../../style/partials/font-icons.scss",
         fontPath: "../fonts/icons/",
         cssClass: "fico"
@@ -373,12 +433,36 @@ function startServer(done) {
     server: {
       baseDir: path.build.root
     },
+    startPath: "/",
     tunnel: false,
     host: "localhost",
     port: 9000,
     logPrefix: "gulper"
   });
   done();
+}
+
+function revAll(done, rootPath = path.build.root) {
+  if (config.commonLocalesRoot) {
+    return done();
+  }
+  return src(rootPath + "**")
+    .pipe(
+      gulpRevAll.revision({
+        dontRenameFile: [".*"],
+        dontUpdateReference: [".html"],
+        transformFilename: function(file, hash) {
+          return nodePath.basename(file.path);
+        },
+        transformPath: function(rev, source, path) {
+          if (rev.startsWith("/") || rev.startsWith("http")) {
+            return rev;
+          }
+          return "/" + rev;
+        }
+      })
+    )
+    .pipe(dest(rootPath));
 }
 
 function reloadBrowser(done) {
@@ -408,21 +492,25 @@ function push() {
 }
 
 function watchSource() {
-  watch(path.watch.html, series(html, reloadBrowser));
-  watch(path.watch.style, series(css, reloadBrowser));
-  watch(path.watch.js, series(js, reloadBrowser));
-  watch(path.watch.fonts, series(fonts, reloadBrowser));
-  watch(path.watch.copy, series(copy, reloadBrowser));
-  watch(path.watch.img, series(images, reloadBrowser));
-  watch(path.watch.svg, series(svg, reloadBrowser));
+  watch(path.watch.locales, series(html, revAll, reloadBrowser));
+  watch(path.watch.html, series(html, revAll, reloadBrowser));
+  watch(path.watch.style, series(css, revAll, reloadBrowser));
+  watch(path.watch.js, series(js, revAll, reloadBrowser));
+  watch(path.watch.fonts, series(fonts, revAll, reloadBrowser));
+  watch(path.watch.copy, series(copy, revAll, reloadBrowser));
+  watch(path.watch.img, series(images, revAll, reloadBrowser));
+  watch(path.watch.svg, series(svg, revAll, reloadBrowser));
   if (config.sprites) {
-    watch(path.watch.sprite, series(sprite, images, reloadBrowser));
+    watch(path.watch.sprite, series(sprite, images, revAll, reloadBrowser));
   }
   if (config.spritesSVG) {
-    watch(path.watch.spriteSVG, series(spriteSVG, images, reloadBrowser));
+    watch(
+      path.watch.spriteSVG,
+      series(spriteSVG, images, revAll, reloadBrowser)
+    );
   }
   if (config.fico) {
-    watch(path.watch.svgico, series(fico, reloadBrowser));
+    watch(path.watch.svgico, series(fico, revAll, reloadBrowser));
   }
 }
 function clean(done) {
@@ -442,11 +530,13 @@ exports.push = push;
 exports.images = series(
   config.sprites ? sprite : done => done(),
   config.spritesSVG ? spriteSVG : done => done(),
-  images
+  images,
+  revAll
 );
 exports.default = series(
   clean,
-  parallel(html, css, js, fico, fonts, copy, exports.images, svg)
+  parallel(html, css, js, fico, fonts, copy, exports.images, svg),
+  revAll
 );
 exports.deploy = series(
   fico,
@@ -460,7 +550,8 @@ exports.deploy = series(
     copyDeploy,
     imagesDeploy,
     svgDeploy
-  )
+  ),
+  done => revAll(done, path.deploy.root)
 );
 
 exports.watch = series(exports.default, startServer, watchSource);
