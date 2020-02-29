@@ -170,7 +170,7 @@ function css() {
     .pipe(sass({ includePaths: ["node_modules/"] }).on("error", sass.logError))
     .pipe(postcss(processors))
     .pipe(cleanCSS())
-    .pipe(sourcemaps.write("../maps"))
+    .pipe(sourcemaps.write("maps"))
     .pipe(dest(path.build.style))
     .pipe(
       browserSync.reload({
@@ -450,7 +450,7 @@ function revAll(done, rootPath = path.build.root) {
     .pipe(
       gulpRevAll.revision({
         dontRenameFile: [".*"],
-        dontUpdateReference: [".html"],
+        dontUpdateReference: [".html", ".map"],
         transformFilename: function(file, hash) {
           return nodePath.basename(file.path);
         },
