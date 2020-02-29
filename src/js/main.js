@@ -1,3 +1,7 @@
-//=require ../../node_modules/object-fit-images/dist/ofi.min.js
+// Main JS module
+// objectFitImages polyfill
+import objectFitImages from "object-fit-images";
 
-//=require partials/app.js
+$(function() {
+  objectFitImages();
+});

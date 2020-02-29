@@ -1,312 +1,323 @@
 "use strict";
+const { src, dest, parallel, series, watch } = require("gulp");
+const nodePath = require("path");
+const fs = require("fs");
 
-const gulp = require("gulp"),
-  watch = require("gulp-watch"),
-  sass = require("gulp-sass"),
-  cssmin = require("gulp-minify-css"),
-  autoprefixer = require("autoprefixer"),
-  mqpacker = require("css-mqpacker"),
-  postcss = require("gulp-postcss"),
-  uglify = require("gulp-uglify"),
-  sourcemaps = require("gulp-sourcemaps"),
-  include = require("gulp-include"),
-  htmlmin = require("gulp-htmlmin"),
-  imagemin = require("gulp-imagemin"),
-  pngquant = require("imagemin-pngquant"),
-  rimraf = require("rimraf"),
-  wait = require("gulp-wait"),
+const autoprefixer = require("autoprefixer"),
+  babel = require("gulp-babel"),
   browserSync = require("browser-sync"),
-  svgSprite = require("gulp-svg-sprites"),
-  spritesmith = require("gulp.spritesmith-multi"),
-  svgo = require("gulp-svgo"),
+  cleanCSS = require("gulp-clean-css"),
+  del = require("del"),
   iconfont = require("gulp-iconfont"),
   iconfontCss = require("gulp-iconfont-css"),
-  babel = require("gulp-babel"),
-  reload = browserSync.reload;
+  include = require("gulp-include"),
+  named = require("vinyl-named"),
+  svgo = require("gulp-svgo"),
+  postcss = require("gulp-postcss"),
+  mqpacker = require("css-mqpacker"),
+  sass = require("gulp-sass"),
+  sourcemaps = require("gulp-sourcemaps"),
+  spritesmith = require("gulp.spritesmith-multi"),
+  svgSprite = require("gulp-svg-sprites"),
+  wait = require("gulp-wait"),
+  webpack = require("webpack-stream"),
+  pug = require("gulp-pug-i18n"),
+  shell = require("shelljs"),
+  gulpRevAll = require("gulp-rev-all");
 
-var path = {
+const DEFAULT_LOCALE = "ru";
+
+const config = {
+  pug: true, // Enable pug view engine
+  sprites: true, // use png stprites in project
+  spritesSVG: true, // use SVG stprites in project
+  fico: true, // use font icons
+  webpackJS: true, // build JS using webpack
+  reload: true, // auto browser reload,
+  commonLocalesRoot: false // true - .html files for all localizations in root folder, false - localizations in {{locale}}/ folder
+};
+
+const path = {
   src: {
-    html: "src/*.html",
-    js: "src/js/*.js",
-    jsLib: "src/js/lib/*.js",
-    json: "src/json/*.json",
-    style: "src/style/*.sass",
+    html: "src/*" + (config.pug ? ".pug" : ".html"),
+    style: "src/style/*.{sass,scss}",
+    bootstrap: "src/bootstrap/bootstrap.scss",
     img: "src/img/**/*.*",
-    svg: "src/svg/*.svg",
-    sprite: "src/sprite/**/*.+(jpg|jpeg|png)",
-    spriteSVG: "src/spriteSVG/*.svg",
+    sprite: "src/sprite/**/*.{jpg,jpeg,png}",
+    spriteSVG: "src/sprite_svg/*.svg",
     svgico: "src/svgico/*.svg",
-    video: "src/video/*.*",
-    favicon: "src/favicon/*.*",
-    fonts: "src/fonts/**/*.*"
+    js: "src/js/*.js",
+    fonts: "src/fonts/**/*.*",
+    svg: "src/svg/**/*.*",
+    copy: "src/copy/**/*.*"
   },
   build: {
-    html: "build/",
-    js: "build/js/",
-    json: "build/json",
-    css: "build/css/",
-    img: "build/img/",
-    svg: "build/img/svg",
-    favicon: "build/favicon/",
+    root: "build/",
+    style: "build/css/",
     fonts: "build/fonts/",
-    video: "build/video/"
+    js: "build/js/",
+    img: "build/img/",
+    svg: "build/img/svg"
   },
   deploy: {
-    html: "www/",
+    root: "www/",
     js: "www/js/",
-    json: "www/json/",
-    css: "www/css/",
+    style: "www/css/",
     img: "www/img/",
     svg: "www/img/svg",
-    favicon: "www/favicon/",
-    fonts: "www/fonts/",
-    video: "www/video/"
+    fonts: "www/fonts/"
   },
   watch: {
-    html: "src/**/*.html",
+    html: "src/**/*" + (config.pug ? ".pug" : ".html"),
+    locales: "src/locale/*",
     js: "src/js/**/*.js",
-    style: "src/style/**/*.+(scss|sass|css)",
-    img: "src/img/**/*.+(jpg|jpeg|png|gif|ico)",
-    sprite: "src/sprite/**/*.+(jpg|jpeg|png)",
-    spriteSVG: "src/spriteSVG/*.svg",
+    style: "src/style/**/*.{scss,sass,css}",
+    bootstrap: "src/bootstrap/*.+(scss|sass)",
+    img: "src/img/**/*.+{jpg,jpeg,png,gif,ico}",
+    sprite: "src/sprite/**/*.{jpg,jpeg,png}",
+    spriteSVG: "src/sprite_svg/*.svg",
     svg: "src/svg/*.svg",
     svgico: "src/svgico/*.svg",
     favicon: "src/**/*.*",
-    video: "src/video/*.*",
-    fonts: "src/fonts/**/*.*"
-  },
-  clean: "./build"
-};
-
-var config = {
-  server: {
-    baseDir: "./build"
-  },
-  tunnel: false,
-  host: "localhost",
-  port: 9000,
-  logPrefix: "gulper"
-};
-
-gulp.task("html:build", function() {
-  gulp
-    .src(path.src.html)
-    .pipe(include())
-    .pipe(htmlmin({ collapseWhitespace: true }))
-    .on("error", function(err) {
-      console.log(err.toString());
-
-      this.emit("end");
-    })
-    .pipe(gulp.dest(path.build.html))
-    .pipe(
-      reload({
-        stream: true
-      })
-    );
-});
-
-gulp.task("html:deploy", function() {
-  gulp
-    .src(path.src.html)
-    .pipe(include())
-    .pipe(htmlmin({ collapseWhitespace: true }))
-    .pipe(gulp.dest(path.deploy.html));
-});
-
-gulp.task("favicon:build", function() {
-  gulp
-    .src(path.src.favicon)
-    .pipe(gulp.dest(path.build.favicon))
-    .pipe(
-      reload({
-        stream: true
-      })
-    );
-});
-gulp.task("favicon:deploy", function() {
-  gulp.src(path.src.favicon).pipe(gulp.dest(path.deploy.favicon));
-});
-
-gulp.task("json:build", function() {
-  gulp
-    .src(path.src.json)
-    .pipe(gulp.dest(path.build.json))
-    .pipe(
-      reload({
-        stream: true
-      })
-    );
-});
-gulp.task("json:deploy", function() {
-  gulp.src(path.src.json).pipe(gulp.dest(path.build.json));
-});
-gulp.task("js-lib:build", function() {
-  gulp
-    .src(path.src.jsLib)
-    .pipe(gulp.dest(path.build.js))
-    .pipe(
-      reload({
-        stream: true
-      })
-    );
-});
-gulp.task("js:build", function() {
-  gulp
-    .src(path.src.js)
-    .pipe(sourcemaps.init({ largeFile: true }))
-    .on("error", function(err) {
-      console.log(err.toString());
-
-      this.emit("end");
-    })
-    .pipe(include())
-    .pipe(
-      babel({
-        presets: ["env"]
-      })
-    )
-
-    .pipe(sourcemaps.write("../maps"))
-    .pipe(gulp.dest(path.build.js))
-    .pipe(
-      reload({
-        stream: true
-      })
-    );
-});
-gulp.task("js:deploy", function() {
-  gulp
-    .src(path.src.js)
-    .pipe(include())
-    .pipe(
-      babel({
-        presets: ["env"]
-      })
-    )
-    .pipe(uglify())
-    .pipe(gulp.dest(path.deploy.js));
-});
-gulp.task("js-lib:deploy", function() {
-  gulp.src(path.src.jsLib).pipe(gulp.dest(path.deploy.js));
-});
-gulp.task("style:build", function() {
-  var processors = [
-    autoprefixer({
-      browsers: ["> 5%"],
-      cascade: false
-    }),
-    mqpacker({
-      sort: function(a, b) {
-        a = a.replace(/\D/g, "");
-        b = b.replace(/\D/g, "");
-        return b - a;
-        // replace this with a-b for Mobile First approach
-      }
-    })
-  ];
-  gulp
-    .src(path.src.style)
-    .pipe(sourcemaps.init({ largeFile: true }))
-    .pipe(wait(500))
-    .pipe(sass().on("error", sass.logError))
-    .pipe(postcss(processors))
-    .pipe(cssmin())
-    .pipe(sourcemaps.write("../maps"))
-    .pipe(gulp.dest(path.build.css))
-    .pipe(
-      reload({
-        stream: true
-      })
-    );
-});
-gulp.task("style:deploy", function() {
-  var processors = [
-    autoprefixer({
-      browsers: ["last 10 versions"],
-      cascade: false
-    }),
-    mqpacker({
-      sort: function(a, b) {
-        a = a.replace(/\D/g, "");
-        b = b.replace(/\D/g, "");
-        return b - a;
-        // replace this with a-b for Mobile First approach
-      }
-    })
-  ];
-  gulp
-    .src(path.src.style)
-    .pipe(wait(500))
-    .pipe(sass().on("error", sass.logError))
-    .pipe(postcss(processors))
-    .pipe(cssmin())
-    .pipe(gulp.dest(path.deploy.css));
-});
-
-gulp.task("image:build", function() {
-  gulp
-    .src(path.src.img)
-    .pipe(gulp.dest(path.build.img))
-    .pipe(
-      reload({
-        stream: true
-      })
-    );
-});
-gulp.task("image:deploy", function() {
-  gulp
-    .src(path.build.img + "/**/*.*")
-    .pipe(
-      imagemin({
-        progressive: true,
-        svgoPlugins: [
-          {
-            removeViewBox: false
-          }
-        ],
-        use: [pngquant()],
-        interlaced: true
-      })
-    )
-    .pipe(gulp.dest(path.deploy.img));
-});
-var options = {
-  spritesmith: function(option, sprite) {
-    option.imgName = sprite + ".png";
-    option.cssName = sprite + ".sass";
-    option.imgPath = "../img/" + sprite + ".png";
-    option.padding = 10;
-    delete option.cssTemplate;
+    fonts: "src/fonts/**/*.*",
+    copy: "src/copy/**/*.*"
   }
 };
-gulp.task("sprite:build", function() {
-  var spriteData = gulp.src(path.src.sprite).pipe(spritesmith(options));
-  spriteData.img.pipe(gulp.dest(path.build.img));
-  spriteData.css.pipe(gulp.dest("src/style/libs/")).pipe(
-    reload({
+
+const processors = [
+  autoprefixer({
+    cascade: false
+  }),
+  mqpacker({
+    sort: function(a, b) {
+      a = a.replace(/\D/g, "");
+      b = b.replace(/\D/g, "");
+      return b - a;
+      // replace this with a-b for Mobile First approach
+    }
+  })
+];
+
+function html() {
+  return src(path.src.html)
+    .pipe(
+      config.pug
+        ? pug({
+            i18n: {
+              namespace: "LANG",
+              locales: "src/locale/*", // locales: en.yml, de.json,
+              filename: config.commonLocalesRoot
+                ? "{{basename}}.{{lang}}.html"
+                : "{{{lang}}/}{{basename}}.html",
+              default: DEFAULT_LOCALE
+            },
+            data: {
+              url(LANG, baseUrl) {
+                const locale = LANG.locale || LANG;
+
+                const urlLocale = DEFAULT_LOCALE === locale ? "" : locale;
+                return nodePath.join(`/${urlLocale}/`, baseUrl);
+              }
+            },
+            pretty: true // Pug option
+          })
+        : include()
+    )
+    .on("error", function(err) {
+      console.log(err.message);
+      this.emit("end");
+    })
+    .pipe(dest(path.build.root))
+    .pipe(
+      browserSync.reload({
+        stream: true
+      })
+    );
+}
+function htmlDeploy() {
+  return src(path.src.html)
+    .pipe(
+      config.pug
+        ? pug({
+            i18n: {
+              namespace: "LANG",
+              locales: "src/locale/*", // locales: en.yml, de.json,
+              filename: "{{{lang}}/}{{basename}}.html",
+              default: DEFAULT_LOCALE
+            },
+            data: {
+              url(LANG, baseUrl) {
+                const locale = LANG.locale || LANG;
+                const urlLocale = DEFAULT_LOCALE === locale ? "" : locale;
+                return nodePath.join(`/${urlLocale}/`, baseUrl);
+              }
+            },
+            pretty: true // Pug option
+          })
+        : include()
+    )
+    .on("error", function(err) {
+      console.log(err.message);
+      this.emit("end");
+    })
+    .pipe(dest(path.deploy.root));
+}
+
+function css() {
+  return src(path.src.style)
+    .pipe(sourcemaps.init({ largeFile: true }))
+    .pipe(wait(200))
+    .pipe(sass({ includePaths: ["node_modules/"] }).on("error", sass.logError))
+    .pipe(postcss(processors))
+    .pipe(cleanCSS())
+    .pipe(sourcemaps.write("maps"))
+    .pipe(dest(path.build.style))
+    .pipe(
+      browserSync.reload({
+        stream: true
+      })
+    );
+}
+function cssDeploy() {
+  return src(path.src.style)
+    .pipe(wait(200))
+    .pipe(sass({ includePaths: ["node_modules/"] }).on("error", sass.logError))
+    .pipe(postcss(processors))
+    .pipe(cleanCSS())
+    .pipe(dest(path.deploy.style));
+}
+
+function js() {
+  if (config.webpackJS) {
+    return src(path.src.js)
+      .pipe(named())
+      .pipe(
+        webpack({
+          mode: "development",
+          devtool: "source-map",
+          module: {
+            rules: [
+              {
+                test: /\.(js)$/,
+                loader: "babel-loader",
+                exclude: /(node_modules)/,
+                query: {
+                  presets: ["@babel/env"],
+                  plugins: ["@babel/plugin-proposal-object-rest-spread"]
+                }
+              }
+            ]
+          },
+
+          externals: {
+            jquery: "jQuery"
+          }
+        })
+      )
+      .on("error", function(err) {
+        this.emit("end");
+      })
+      .pipe(dest(path.build.js))
+      .pipe(
+        browserSync.reload({
+          stream: true
+        })
+      );
+  } else {
+    return src(path.src.js)
+      .pipe(sourcemaps.init({ largeFile: true }))
+      .pipe(include())
+      .pipe(
+        babel({
+          presets: ["@babel/env"]
+        })
+      )
+      .pipe(sourcemaps.write("../maps"))
+      .pipe(dest(path.build.js))
+      .on("error", function(err) {
+        this.emit("end");
+      })
+      .pipe(
+        browserSync.reload({
+          stream: true
+        })
+      );
+  }
+}
+function jsDeploy() {
+  if (config.webpackJS) {
+    return src(path.src.js)
+      .pipe(named())
+      .pipe(
+        webpack({
+          mode: "production",
+          module: {
+            rules: [
+              {
+                test: /\.(js)$/,
+                loader: "babel-loader",
+                exclude: /(node_modules)/,
+                query: {
+                  presets: ["@babel/env"],
+                  plugins: ["@babel/plugin-proposal-object-rest-spread"]
+                }
+              }
+            ]
+          },
+
+          externals: {
+            jquery: "jQuery"
+          }
+        })
+      )
+      .on("error", function(err) {
+        this.emit("end");
+      })
+      .pipe(dest(path.deploy.js));
+  } else {
+    return src(path.src.js)
+      .pipe(include())
+      .pipe(
+        babel({
+          presets: ["@babel/env"]
+        })
+      )
+      .pipe(dest(path.deploy.js))
+      .on("error", function(err) {
+        this.emit("end");
+      });
+  }
+}
+
+function sprite(done) {
+  if (!config.sprites) return done();
+
+  const spritePath = "src/style/libs/sprite.sass";
+  if (!fs.existsSync(spritePath)) {
+    fs.writeFileSync(spritePath, "");
+  }
+
+  const options = {
+    spritesmith: function(option, sprite) {
+      option.imgName = sprite + ".png";
+      option.cssName = sprite + ".sass";
+      option.imgPath = "../img/" + sprite + ".png";
+      option.padding = 10;
+      delete option.cssTemplate;
+    }
+  };
+  const spriteData = src(path.src.sprite).pipe(spritesmith(options));
+  spriteData.img.pipe(dest(path.build.img));
+  spriteData.css.pipe(dest("src/style/libs/")).pipe(
+    browserSync.reload({
       stream: true
     })
   );
-});
-
-gulp.task("svg:build", function() {
-  return gulp
-    .src(path.src.svg)
-    .pipe(wait(3000))
-    .pipe(svgo())
-    .pipe(gulp.dest(path.build.svg));
-});
-gulp.task("svg:deploy", function() {
-  return gulp
-    .src(path.src.svg)
-    .pipe(svgo())
-    .pipe(gulp.dest(path.deploy.svg));
-});
-
-gulp.task("spriteSVG:build", function() {
-  return gulp
-    .src(path.src.spriteSVG)
+  return done();
+}
+function spriteSVG(done) {
+  if (!config.spritesSVG) return done();
+  return src(path.src.spriteSVG)
     .pipe(wait(3000))
     .pipe(
       svgSprite({
@@ -329,6 +340,10 @@ gulp.task("spriteSVG:build", function() {
               'fill="url(#' + item.name + '-$1)"'
             );
             item.data = item.data.replace(
+              /stroke=\"url\(\#([^\"]+)\)\"/gm,
+              'stroke="url(#' + item.name + '-$1)"'
+            );
+            item.data = item.data.replace(
               /mask=\"url\(\#([^\"]+)\)\"/gm,
               'mask="url(#' + item.name + '-$1)"'
             );
@@ -342,18 +357,26 @@ gulp.task("spriteSVG:build", function() {
         }
       })
     )
-    .pipe(gulp.dest("src/img/svg"));
-});
+    .on("error", function(err) {
+      this.emit("end");
+    })
+    .pipe(dest("src/img/svg"));
+}
 
-gulp.task("svg-ico:build", function() {
-  return gulp
-    .src(path.src.svgico)
+function fico(done) {
+  if (!config.fico) return done();
+  const iconsPath = "src/style/partials/font-icons.scss";
+  if (!fs.existsSync(iconsPath)) {
+    fs.writeFileSync(iconsPath, "");
+  }
+
+  return src(path.src.svgico)
     .pipe(wait(1000))
     .pipe(svgo())
     .pipe(
       iconfontCss({
         fontName: "fico", // required
-        target: "src/style/partials/font-icons.scss",
+        target: iconsPath,
         targetPath: "../../style/partials/font-icons.scss",
         fontPath: "../fonts/icons/",
         cssClass: "fico"
@@ -370,104 +393,165 @@ gulp.task("svg-ico:build", function() {
         fontWeight: "normal"
       })
     )
-    .pipe(gulp.dest("src/fonts/icons"));
-});
+    .on("error", function(err) {
+      this.emit("end");
+    })
+    .pipe(dest("src/fonts/icons"));
+}
 
-gulp.task("fonts:build", function() {
-  gulp.src(path.src.fonts).pipe(gulp.dest(path.build.fonts));
-});
+function fonts() {
+  return src(path.src.fonts).pipe(dest(path.build.fonts));
+}
+function fontsDeploy() {
+  return src(path.src.fonts).pipe(dest(path.deploy.fonts));
+}
+function images() {
+  return src(path.src.img).pipe(dest(path.build.img));
+}
+function imagesDeploy() {
+  return src(path.src.img).pipe(dest(path.deploy.img));
+}
+function svg() {
+  return src(path.src.svg)
+    .pipe(svgo())
+    .pipe(dest(path.build.svg));
+}
+function svgDeploy() {
+  return src(path.src.svg)
+    .pipe(svgo())
+    .pipe(dest(path.deploy.svg));
+}
+function copy() {
+  return src(path.src.copy).pipe(dest(path.build.root));
+}
+function copyDeploy() {
+  return src(path.src.copy).pipe(dest(path.deploy.root));
+}
+function startServer(done) {
+  if (!config.reload) return done();
+  browserSync.init({
+    server: {
+      baseDir: path.build.root
+    },
+    startPath: "/",
+    tunnel: false,
+    host: "localhost",
+    port: 9000,
+    logPrefix: "gulper"
+  });
+  done();
+}
 
-gulp.task("fonts:deploy", function() {
-  gulp.src(path.src.fonts).pipe(gulp.dest(path.deploy.fonts));
-});
+function revAll(done, rootPath = path.build.root) {
+  if (config.commonLocalesRoot) {
+    return done();
+  }
+  return src(rootPath + "**")
+    .pipe(
+      gulpRevAll.revision({
+        dontRenameFile: [".*"],
+        dontUpdateReference: [".html", ".map"],
+        transformFilename: function(file, hash) {
+          return nodePath.basename(file.path);
+        },
+        transformPath: function(rev, source, path) {
+          if (rev.startsWith("/") || rev.startsWith("http")) {
+            return rev;
+          }
+          return "/" + rev;
+        }
+      })
+    )
+    .pipe(dest(rootPath));
+}
 
-gulp.task("video:build", function() {
-  gulp.src(path.src.video).pipe(gulp.dest(path.build.video));
-});
+function reloadBrowser(done) {
+  if (!config.reload) return done();
+  browserSync.reload();
+  done();
+}
 
-gulp.task("video:deploy", function() {
-  gulp.src(path.src.video).pipe(gulp.dest(path.deploy.video));
-});
+function push() {
+  const commitMessage = "Auto-commit " + new Date().getTime();
 
-gulp.task("build", [
-  "html:build",
-  "favicon:build",
-  "js:build",
-  "js-lib:build",
-  "json:build",
-  "style:build",
-  "svg:build",
-  "clean-fonts",
-  "svg-ico:build",
-  "image:build",
-  "sprite:build",
-  "spriteSVG:build",
-  "fonts:build"
-]);
+  if (!shell.which("git")) {
+    shell.echo("Sorry, this script requires git");
+    shell.exit(1);
+  } else {
+    shell.cd("www");
+    if (
+      shell.exec(`git add . && git commit -m "${commitMessage}"`).code !== 0
+    ) {
+      shell.echo("Error: Git commit failed");
+      shell.exit(1);
+    } else {
+      shell.echo("Success commit");
+      shell.exec("git push");
+    }
+  }
+}
 
-gulp.task("deploy", [
-  "html:deploy",
-  "favicon:deploy",
-  "js:deploy",
-  "js-lib:deploy",
-  "json:deploy",
-  "style:deploy",
-  "fonts:deploy",
-  "svg:deploy",
-  "spriteSVG:build",
-  "svg-ico:build",
-  "image:deploy"
-]);
+function watchSource() {
+  watch(path.watch.locales, series(html, revAll, reloadBrowser));
+  watch(path.watch.html, series(html, revAll, reloadBrowser));
+  watch(path.watch.style, series(css, revAll, reloadBrowser));
+  watch(path.watch.js, series(js, revAll, reloadBrowser));
+  watch(path.watch.fonts, series(fonts, revAll, reloadBrowser));
+  watch(path.watch.copy, series(copy, revAll, reloadBrowser));
+  watch(path.watch.img, series(images, revAll, reloadBrowser));
+  watch(path.watch.svg, series(svg, revAll, reloadBrowser));
+  if (config.sprites) {
+    watch(path.watch.sprite, series(sprite, images, revAll, reloadBrowser));
+  }
+  if (config.spritesSVG) {
+    watch(
+      path.watch.spriteSVG,
+      series(spriteSVG, images, revAll, reloadBrowser)
+    );
+  }
+  if (config.fico) {
+    watch(path.watch.svgico, series(fico, revAll, reloadBrowser));
+  }
+}
+function clean(done) {
+  del.sync(path.build.root);
+  return done();
+}
+function cleanDeploy(done) {
+  del.sync(path.deploy.root);
+  return done();
+}
 
-gulp.task("watch", function() {
-  watch([path.watch.html], function(event, cb) {
-    gulp.start("html:build");
-  });
-  watch([path.watch.favicon], function(event, cb) {
-    gulp.start("favicon:build");
-  });
-  watch([path.watch.style], function(event, cb) {
-    gulp.start("style:build");
-  });
-  watch([path.watch.js], function(event, cb) {
-    gulp.start("js:build");
-  });
-  watch([path.watch.js], function(event, cb) {
-    gulp.start("js-lib:build");
-  });
-  watch([path.watch.svg], function(event, cb) {
-    gulp.start("svg:build");
-  });
-  watch([path.watch.svgico], function(event, cb) {
-    gulp.start("svg-ico:build");
-  });
-  watch([path.watch.img], function(event, cb) {
-    gulp.start("image:build");
-  });
-  watch([path.watch.sprite], function(event, cb) {
-    gulp.start("sprite:build");
-  });
-  watch([path.watch.spriteSVG], function(event, cb) {
-    gulp.start("spriteSVG:build");
-  });
-  watch([path.watch.fonts], function(event, cb) {
-    gulp.start("fonts:build");
-  });
-  watch([path.watch.video], function(event, cb) {
-    gulp.start("video:build");
-  });
-});
+exports.html = html;
+exports.css = css;
+exports.js = js;
+exports.fonts = fonts;
+exports.push = push;
+exports.images = series(
+  config.sprites ? sprite : done => done(),
+  config.spritesSVG ? spriteSVG : done => done(),
+  images,
+  revAll
+);
+exports.default = series(
+  clean,
+  parallel(html, css, js, fico, fonts, copy, exports.images, svg),
+  revAll
+);
+exports.deploy = series(
+  fico,
+  config.sprites ? sprite : done => done(),
+  config.spritesSVG ? spriteSVG : done => done(),
+  parallel(
+    htmlDeploy,
+    cssDeploy,
+    jsDeploy,
+    fontsDeploy,
+    copyDeploy,
+    imagesDeploy,
+    svgDeploy
+  ),
+  done => revAll(done, path.deploy.root)
+);
 
-gulp.task("webserver", function() {
-  browserSync(config);
-});
-
-gulp.task("clean", function(cb) {
-  rimraf(path.clean, cb);
-});
-
-gulp.task("clean-fonts", function(cb) {
-  rimraf("build/fonts/icons/*.*", cb);
-});
-
-gulp.task("default", ["build", "webserver", "watch"]);
+exports.watch = series(exports.default, startServer, watchSource);

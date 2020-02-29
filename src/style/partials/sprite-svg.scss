@@ -1,59 +1,137 @@
 .icon {
     font-size: 10px;
-    &:before {
-      content:' ';
-      vertical-align:middle;
-      display: inline-block;
-      background-image: url("../img/svg/sprite.svg");
-      background-repeat: no-repeat;
-      background-size: 53.2em 124.5em;
+}
 
-      .no-svg & {
-        background-image: url("../svg/sprite.png");
-      }
-    }
+.icon:before {
+    content:' ';
+    vertical-align:middle;
+    display: inline-block;
+    background-image: url("../img/svg/sprite.svg");
+    background-repeat: no-repeat;
+    background-size: 68.55em 459.3em;
+}
+
+.no-svg .icon:before {
+    background-image: url("../svg/sprite.png");
 }
 
 
 
-
-.icon.svg-calendar {
-  &:before {
-      background-position: -1em -1em;
-      width: 51.2em;
-      height: 51.2em;
-    }
-  }
-
-  @mixin icon-svg-calendar(){
-    @extend .svg-calendar;
+  .icon.back-desktop:before {
+      background-position: 0em 0em;
+      width: 68.55em;
+      height: 66.39em;
   }
 
 
-.icon.svg-compass {
-  &:before {
-      background-position: -1em -54.2em;
-      width: 51.2em;
-      height: 51.2em;
-    }
-  }
 
-  @mixin icon-svg-compass(){
-    @extend .svg-compass;
+
+  .icon.back-mobile:before {
+      background-position: 0em -66.4em;
+      width: 30.47em;
+      height: 32.94em;
   }
 
 
-.icon.svg-user {
-  &:before {
-      background-position: -1em -107.4em;
-      width: 16.1em;
-      height: 16.1em;
-    }
+
+
+  .icon.cross:before {
+      background-position: 0em -99.4em;
+      width: 1.69em;
+      height: 1.72em;
   }
 
-  @mixin icon-svg-user(){
-    @extend .svg-user;
+
+
+
+  .icon.done:before {
+      background-position: 0em -101.2em;
+      width: 2.2399999999999998em;
+      height: 2.21em;
   }
+
+
+
+
+  .icon.logo:before {
+      background-position: 0em -103.5em;
+      width: 26.3413em;
+      height: 4.581300000000001em;
+  }
+
+
+
+
+  .icon.quote:before {
+      background-position: 0em -108.1em;
+      width: 17.11em;
+      height: 11.26em;
+  }
+
+
+
+
+  .icon.sprite:before {
+      background-position: 0em -119.4em;
+      width: 18.32841691248771em;
+      height: 100em;
+  }
+
+
+
+
+  .icon.sprite-desktop:before {
+      background-position: 0em -219.4em;
+      width: 30.439999999999998em;
+      height: 77.5em;
+  }
+
+
+
+
+  .icon.sprite-mobile:before {
+      background-position: 0em -296.9em;
+      width: 17.49413420929141em;
+      height: 100em;
+  }
+
+
+
+
+  .icon.step1:before {
+      background-position: 0em -396.9em;
+      width: 15.569999999999999em;
+      height: 15.569999999999999em;
+  }
+
+
+
+
+  .icon.step2:before {
+      background-position: 0em -412.5em;
+      width: 15.569999999999999em;
+      height: 15.569999999999999em;
+  }
+
+
+
+
+  .icon.step3:before {
+      background-position: 0em -428.1em;
+      width: 15.569999999999999em;
+      height: 15.569999999999999em;
+  }
+
+
+
+
+  .icon.step4:before {
+      background-position: 0em -443.7em;
+      width: 15.569999999999999em;
+      height: 15.569999999999999em;
+  }
+
+
 
 
 

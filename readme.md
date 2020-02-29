@@ -2,8 +2,6 @@
 
 ---
 
-![Gulper](src/screen/gulper.png)
-
 Навигация
 
 - [Создание нового проекта](#Создание-нового-проекта)
@@ -95,17 +93,25 @@ my-app/
 
 ### JavaScript
 
-Главный `main.js` файл находится в папке `src/js/`. Он предназначен для включения js-модулей
+Главный `main.js` файл находится в папке `src/js/`. Он предназначен для включения js-модулей через `import ES6`
 
 Пример:
 
 ```js
-//=require partials/app-lib.js
-
-//=include partials/app.js
+import objectFitImages from "object-fit-images";
+import $ from "jquery";
+import App from "./partials/app";
 ```
 
-**require подключит файл только 1 раз. include можно использовать для подключения файл несколько раз.**
+Модули хранятся в папке `src/js/partials`. Чтобы использовать функции модуля, их нужно экспортировать. Пример:
+
+```js
+export default function() {
+  console.log("App module");
+}
+```
+
+Тогда `import App from "./partials/app";` в `main.js` позволит вызывать модуль `App();`
 
 ### Спрайты
 
