@@ -1,7 +1,7 @@
-// Main JS module
+// Main TS module
 // objectFitImages polyfill
 import objectFitImages from "object-fit-images";
 
-$(function() {
+$(function () {
   objectFitImages();
 });
