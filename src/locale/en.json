@@ -1,4 +1,13 @@
 {
   "locale": "en",
-  "hello": "Hello World"
+  "hello": "Hello World",
+  "product-1": {
+    "title": "Product 1"
+  },
+  "product-2": {
+    "title": "Product 2"
+  },
+  "product-3": {
+    "title": "Product 3"
+  }
 }

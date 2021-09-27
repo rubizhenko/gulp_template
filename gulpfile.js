@@ -23,7 +23,8 @@ const autoprefixer = require("autoprefixer"),
   webpack = require("webpack-stream"),
   pug = require("gulp-pug-i18n"),
   shell = require("shelljs"),
-  gulpRevAll = require("gulp-rev-all");
+  gulpRevAll = require("gulp-rev-all"),
+  slugify = require("slugify");
 
 const DEFAULT_LOCALE = "ru";
 
@@ -34,12 +35,13 @@ const config = {
   fico: true, // use font icons
   webpackJS: true, // build JS using webpack
   reload: true, // auto browser reload,
-  commonLocalesRoot: false // true - .html files for all localizations in root folder, false - localizations in {{locale}}/ folder
+  commonLocalesRoot: false, // true - .html files for all localizations in root folder, false - localizations in {{locale}}/ folder
 };
 
 const path = {
   src: {
     html: "src/*" + (config.pug ? ".pug" : ".html"),
+    templates: "src/templates/*.pug",
     style: "src/style/*.{sass,scss}",
     bootstrap: "src/bootstrap/bootstrap.scss",
     img: "src/img/**/*.*",
@@ -49,7 +51,7 @@ const path = {
     js: "src/js/*.js",
     fonts: "src/fonts/**/*.*",
     svg: "src/svg/**/*.*",
-    copy: "src/copy/**/*.*"
+    copy: "src/copy/**/*.*",
   },
   build: {
     root: "build/",
@@ -57,7 +59,7 @@ const path = {
     fonts: "build/fonts/",
     js: "build/js/",
     img: "build/img/",
-    svg: "build/img/svg"
+    svg: "build/img/svg",
   },
   deploy: {
     root: "www/",
@@ -65,10 +67,11 @@ const path = {
     style: "www/css/",
     img: "www/img/",
     svg: "www/img/svg",
-    fonts: "www/fonts/"
+    fonts: "www/fonts/",
   },
   watch: {
     html: "src/**/*" + (config.pug ? ".pug" : ".html"),
+    templates: "src/templates/*.pug",
     locales: "src/locale/*",
     js: "src/js/**/*.js",
     style: "src/style/**/*.{scss,sass,css}",
@@ -80,22 +83,22 @@ const path = {
     svgico: "src/svgico/*.svg",
     favicon: "src/**/*.*",
     fonts: "src/fonts/**/*.*",
-    copy: "src/copy/**/*.*"
-  }
+    copy: "src/copy/**/*.*",
+  },
 };
 
 const processors = [
   autoprefixer({
-    cascade: false
+    cascade: false,
   }),
   mqpacker({
-    sort: function(a, b) {
+    sort: function (a, b) {
       a = a.replace(/\D/g, "");
       b = b.replace(/\D/g, "");
       return b - a;
       // replace this with a-b for Mobile First approach
-    }
-  })
+    },
+  }),
 ];
 
 function html() {
@@ -109,7 +112,7 @@ function html() {
               filename: config.commonLocalesRoot
                 ? "{{basename}}.{{lang}}.html"
                 : "{{{lang}}/}{{basename}}.html",
-              default: DEFAULT_LOCALE
+              default: DEFAULT_LOCALE,
             },
             data: {
               url(LANG, baseUrl) {
@@ -117,20 +120,20 @@ function html() {
 
                 const urlLocale = DEFAULT_LOCALE === locale ? "" : locale;
                 return nodePath.join(`/${urlLocale}/`, baseUrl);
-              }
+              },
             },
-            pretty: true // Pug option
+            pretty: true, // Pug option
           })
         : include()
     )
-    .on("error", function(err) {
+    .on("error", function (err) {
       console.log(err.message);
       this.emit("end");
     })
     .pipe(dest(path.build.root))
     .pipe(
       browserSync.reload({
-        stream: true
+        stream: true,
       })
     );
 }
@@ -143,20 +146,20 @@ function htmlDeploy() {
               namespace: "LANG",
               locales: "src/locale/*", // locales: en.yml, de.json,
               filename: "{{{lang}}/}{{basename}}.html",
-              default: DEFAULT_LOCALE
+              default: DEFAULT_LOCALE,
             },
             data: {
               url(LANG, baseUrl) {
                 const locale = LANG.locale || LANG;
                 const urlLocale = DEFAULT_LOCALE === locale ? "" : locale;
                 return nodePath.join(`/${urlLocale}/`, baseUrl);
-              }
+              },
             },
-            pretty: true // Pug option
+            pretty: true, // Pug option
           })
         : include()
     )
-    .on("error", function(err) {
+    .on("error", function (err) {
       console.log(err.message);
       this.emit("end");
     })
@@ -174,7 +177,7 @@ function css() {
     .pipe(dest(path.build.style))
     .pipe(
       browserSync.reload({
-        stream: true
+        stream: true,
       })
     );
 }
@@ -203,24 +206,24 @@ function js() {
                 exclude: /(node_modules)/,
                 query: {
                   presets: ["@babel/env"],
-                  plugins: ["@babel/plugin-proposal-object-rest-spread"]
-                }
-              }
-            ]
+                  plugins: ["@babel/plugin-proposal-object-rest-spread"],
+                },
+              },
+            ],
           },
 
           externals: {
-            jquery: "jQuery"
-          }
+            jquery: "jQuery",
+          },
         })
       )
-      .on("error", function(err) {
+      .on("error", function (err) {
         this.emit("end");
       })
       .pipe(dest(path.build.js))
       .pipe(
         browserSync.reload({
-          stream: true
+          stream: true,
         })
       );
   } else {
@@ -229,17 +232,17 @@ function js() {
       .pipe(include())
       .pipe(
         babel({
-          presets: ["@babel/env"]
+          presets: ["@babel/env"],
         })
       )
       .pipe(sourcemaps.write("../maps"))
       .pipe(dest(path.build.js))
-      .on("error", function(err) {
+      .on("error", function (err) {
         this.emit("end");
       })
       .pipe(
         browserSync.reload({
-          stream: true
+          stream: true,
         })
       );
   }
@@ -259,18 +262,18 @@ function jsDeploy() {
                 exclude: /(node_modules)/,
                 query: {
                   presets: ["@babel/env"],
-                  plugins: ["@babel/plugin-proposal-object-rest-spread"]
-                }
-              }
-            ]
+                  plugins: ["@babel/plugin-proposal-object-rest-spread"],
+                },
+              },
+            ],
           },
 
           externals: {
-            jquery: "jQuery"
-          }
+            jquery: "jQuery",
+          },
         })
       )
-      .on("error", function(err) {
+      .on("error", function (err) {
         this.emit("end");
       })
       .pipe(dest(path.deploy.js));
@@ -279,11 +282,11 @@ function jsDeploy() {
       .pipe(include())
       .pipe(
         babel({
-          presets: ["@babel/env"]
+          presets: ["@babel/env"],
         })
       )
       .pipe(dest(path.deploy.js))
-      .on("error", function(err) {
+      .on("error", function (err) {
         this.emit("end");
       });
   }
@@ -298,19 +301,19 @@ function sprite(done) {
   }
 
   const options = {
-    spritesmith: function(option, sprite) {
+    spritesmith: function (option, sprite) {
       option.imgName = sprite + ".png";
       option.cssName = sprite + ".sass";
       option.imgPath = "../img/" + sprite + ".png";
       option.padding = 10;
       delete option.cssTemplate;
-    }
+    },
   };
   const spriteData = src(path.src.sprite).pipe(spritesmith(options));
   spriteData.img.pipe(dest(path.build.img));
   spriteData.css.pipe(dest("src/style/libs/")).pipe(
     browserSync.reload({
-      stream: true
+      stream: true,
     })
   );
   return done();
@@ -323,14 +326,14 @@ function spriteSVG(done) {
       svgSprite({
         mode: "symbols",
         preview: {
-          symbols: "../../preview/symbols.html"
+          symbols: "../../preview/symbols.html",
         },
         selector: "%f",
         svg: {
-          symbols: "symbols.svg"
+          symbols: "symbols.svg",
         },
-        transformData: function(data, config) {
-          data.svg.map(function(item) {
+        transformData: function (data, config) {
+          data.svg.map(function (item) {
             item.data = item.data.replace(
               /id=\"([^\"]+)\"/gm,
               'id="' + item.name + '-$1"'
@@ -354,10 +357,10 @@ function spriteSVG(done) {
             return item;
           });
           return data;
-        }
+        },
       })
     )
-    .on("error", function(err) {
+    .on("error", function (err) {
       this.emit("end");
     })
     .pipe(dest("src/img/svg"));
@@ -379,7 +382,7 @@ function fico(done) {
         target: iconsPath,
         targetPath: "../../style/partials/font-icons.scss",
         fontPath: "../fonts/icons/",
-        cssClass: "fico"
+        cssClass: "fico",
       })
     )
     .pipe(
@@ -390,10 +393,10 @@ function fico(done) {
         normalize: true,
         fontHeight: 1001,
         fontStyle: "normal",
-        fontWeight: "normal"
+        fontWeight: "normal",
       })
     )
-    .on("error", function(err) {
+    .on("error", function (err) {
       this.emit("end");
     })
     .pipe(dest("src/fonts/icons"));
@@ -412,14 +415,10 @@ function imagesDeploy() {
   return src(path.src.img).pipe(dest(path.deploy.img));
 }
 function svg() {
-  return src(path.src.svg)
-    .pipe(svgo())
-    .pipe(dest(path.build.svg));
+  return src(path.src.svg).pipe(svgo()).pipe(dest(path.build.svg));
 }
 function svgDeploy() {
-  return src(path.src.svg)
-    .pipe(svgo())
-    .pipe(dest(path.deploy.svg));
+  return src(path.src.svg).pipe(svgo()).pipe(dest(path.deploy.svg));
 }
 function copy() {
   return src(path.src.copy).pipe(dest(path.build.root));
@@ -431,13 +430,13 @@ function startServer(done) {
   if (!config.reload) return done();
   browserSync.init({
     server: {
-      baseDir: path.build.root
+      baseDir: path.build.root,
     },
     startPath: "/",
     tunnel: false,
     host: "localhost",
     port: 9000,
-    logPrefix: "gulper"
+    logPrefix: "gulper",
   });
   done();
 }
@@ -451,15 +450,15 @@ function revAll(done, rootPath = path.build.root) {
       gulpRevAll.revision({
         dontRenameFile: [".*"],
         dontUpdateReference: [".html", ".map"],
-        transformFilename: function(file, hash) {
+        transformFilename: function (file, hash) {
           return nodePath.basename(file.path);
         },
-        transformPath: function(rev, source, path) {
+        transformPath: function (rev, source, path) {
           if (rev.startsWith("/") || rev.startsWith("http")) {
             return rev;
           }
           return "/" + rev;
-        }
+        },
       })
     )
     .pipe(dest(rootPath));
@@ -492,8 +491,25 @@ function push() {
 }
 
 function watchSource() {
-  watch(path.watch.locales, series(html, revAll, reloadBrowser));
+  watch(
+    path.watch.locales,
+    series(
+      html,
+      buildTemplates.bind(null, path.build.root),
+      revAll,
+      reloadBrowser
+    )
+  );
   watch(path.watch.html, series(html, revAll, reloadBrowser));
+  watch(
+    path.watch.templates,
+    series(
+      html,
+      buildTemplates.bind(null, path.build.root),
+      revAll,
+      reloadBrowser
+    )
+  );
   watch(path.watch.style, series(css, revAll, reloadBrowser));
   watch(path.watch.js, series(js, revAll, reloadBrowser));
   watch(path.watch.fonts, series(fonts, revAll, reloadBrowser));
@@ -521,6 +537,66 @@ function cleanDeploy(done) {
   del.sync(path.deploy.root);
   return done();
 }
+function streamPromise(stream) {
+  return new Promise((resolve, reject) => {
+    stream.on("end", () => {
+      resolve("end");
+    });
+    stream.on("finish", () => {
+      resolve("finish");
+    });
+    stream.on("error", (error) => {
+      reject(error);
+    });
+  });
+}
+
+function buildTemplates(destPath = path.deploy.root, done) {
+  const batchData = JSON.parse(fs.readFileSync("./batch.json"));
+  const htmlBuildPromises = [];
+  if (batchData.length) {
+    for (let i = 0; i < batchData.length; i++) {
+      const data = batchData[i];
+      const slug = slugify(data.key);
+      const templatePath = data.template;
+      if (!templatePath) {
+        continue;
+      }
+      htmlBuildPromises.push(
+        streamPromise(
+          src(templatePath)
+            .pipe(
+              pug({
+                i18n: {
+                  namespace: "LANG",
+                  locales: "src/locale/*", // locales: en.yml, de.json,
+                  filename: `{{{lang}}/}${slug}.html`,
+                  default: DEFAULT_LOCALE,
+                },
+                data: {
+                  template: data,
+                  url(LANG, baseUrl) {
+                    const locale = LANG.locale || LANG;
+                    const urlLocale = DEFAULT_LOCALE === locale ? "" : locale;
+                    return nodePath.join(`/${urlLocale}/`, baseUrl);
+                  },
+                },
+                pretty: true, // Pug option
+              })
+            )
+            .on("error", function (err) {
+              console.log(err.message);
+              this.emit("end");
+            })
+            .pipe(dest(destPath))
+        )
+      );
+    }
+
+    return Promise.all(htmlBuildPromises);
+  }
+  return done();
+}
 
 exports.html = html;
 exports.css = css;
@@ -528,22 +604,33 @@ exports.js = js;
 exports.fonts = fonts;
 exports.push = push;
 exports.images = series(
-  config.sprites ? sprite : done => done(),
-  config.spritesSVG ? spriteSVG : done => done(),
+  config.sprites ? sprite : (done) => done(),
+  config.spritesSVG ? spriteSVG : (done) => done(),
   images,
   revAll
 );
 exports.default = series(
   clean,
-  parallel(html, css, js, fico, fonts, copy, exports.images, svg),
+  parallel(
+    html,
+    buildTemplates.bind(null, path.build.root),
+    css,
+    js,
+    fico,
+    fonts,
+    copy,
+    exports.images,
+    svg
+  ),
   revAll
 );
 exports.deploy = series(
   fico,
-  config.sprites ? sprite : done => done(),
-  config.spritesSVG ? spriteSVG : done => done(),
+  config.sprites ? sprite : (done) => done(),
+  config.spritesSVG ? spriteSVG : (done) => done(),
   parallel(
     htmlDeploy,
+    buildTemplates.bind(null, path.deploy.root),
     cssDeploy,
     jsDeploy,
     fontsDeploy,
@@ -551,7 +638,7 @@ exports.deploy = series(
     imagesDeploy,
     svgDeploy
   ),
-  done => revAll(done, path.deploy.root)
+  (done) => revAll(done, path.deploy.root)
 );
 
 exports.watch = series(exports.default, startServer, watchSource);
