@@ -3,5 +3,5 @@
 import objectFitImages from "object-fit-images";
 
 $(function () {
-  objectFitImages();
+	objectFitImages();
 });
