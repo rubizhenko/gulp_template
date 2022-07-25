@@ -294,3 +294,12 @@
 =nlt
 	&:not(:last-of-type)
 		@content
+
+=adaptiv-font($pcSize, $mobSize, $maxWidth: 1440, $minWidth: 320)
+	font-size: getAdaptiveSize($pcSize, $mobSize, $maxWidth, $minWidth)
+
+
+@function getAdaptiveSize($pcSize, $mobSize, $maxWidth: 1440, $minWidth: 320)
+	$addSize: $pcSize - $mobSize
+	$diffWidth: $maxWidth - $minWidth
+	@return calc(#{$mobSize + px} + #{$addSize} * ((100vw - #{$minWidth + px}) / #{$diffWidth}))
