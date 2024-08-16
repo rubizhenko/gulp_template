@@ -1,4 +1,7 @@
 {
 	"locale": "en",
-	"hello": "Hello World"
+	"hello": "Hello World",
+	"footer": {
+		"title": "Footer title"
+	}
 }

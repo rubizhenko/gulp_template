@@ -7,6 +7,7 @@
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"start": "gulp watch",
 		"build": "gulp deploy",
+		"archive": "gulp archive",
 		"ver": "yarn version --patch"
 	},
 	"repository": {
@@ -22,7 +23,7 @@
 		"> 0.25%, not dead"
 	],
 	"engines": {
-		"node": ">=14.5.0"
+		"node": "=12.x"
 	},
 	"homepage": "https://github.com/rubizhenko/gulp_template#readme",
 	"devDependencies": {
@@ -33,6 +34,7 @@
 		"@babel/preset-typescript": "^7.14.5",
 		"@types/jquery": "^3.5.14",
 		"@types/object-fit-images": "^3.2.3",
+		"@types/slick-carousel": "^1.6.40",
 		"acorn": "^6.4.1",
 		"autoprefixer": "^9.5.1",
 		"babel-loader": "^8.0.6",
@@ -64,7 +66,7 @@
 		"webpack-stream": "^5.2.1"
 	},
 	"dependencies": {
-		"lodash": "^4.17.21",
+		"gulp-zip": "^5.1.0",
 		"no-scroll": "^2.1.1",
 		"object-fit-images": "^3.2.4"
 	}
