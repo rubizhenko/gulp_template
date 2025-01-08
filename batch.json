@@ -1,14 +1,14 @@
 [
-  {
-    "key": "product-1",
-    "template": "src/templates/product.pug"
-  },
-  {
-    "key": "product-2",
-    "template": "src/templates/product.pug"
-  },
-  {
-    "key": "product-3",
-    "template": "src/templates/product.pug"
-  }
+	{
+		"key": "product-1",
+		"template": "src/templates/product.pug"
+	},
+	{
+		"key": "product-2",
+		"template": "src/templates/product.pug"
+	},
+	{
+		"key": "product-3",
+		"template": "src/templates/product.pug"
+	}
 ]
