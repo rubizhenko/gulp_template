@@ -7,7 +7,6 @@
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"start": "gulp watch",
 		"build": "gulp deploy",
-		"batch": "gulp batch",
 		"archive": "gulp archive",
 		"ver": "yarn version --patch"
 	},
@@ -26,7 +25,6 @@
 	"engines": {
 		"node": "=12.x"
 	},
-	
 	"homepage": "https://github.com/rubizhenko/gulp_template#readme",
 	"devDependencies": {
 		"@babel/core": "^7.4.4",

@@ -1,13 +1,9 @@
-extends chunks/layout.pug
+extends templates/layout/layout.pug
 
 block content
-	.container
-		a(href="/en") En
-		a(href="/") Ru
-	.container
-		h1!= LANG.hello
-	footer.footer
-		.container
-			h2!= LANG.footer.title
-	script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js")
-	script(src="js/main.js")
+	h1!= LANG.hello
+	- const localeRoot = LANG.locale === 'ru'? '/':`/${LANG.locale}/`;
+	ul
+		li: a(href=`${localeRoot}product-1.html`) Product 1
+		li: a(href=`${localeRoot}product-2.html`) Product 2
+		li: a(href=`${localeRoot}product-3.html`) Product 3

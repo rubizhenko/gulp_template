@@ -1,8 +1,12 @@
-extends ../chunks/layout.pug
+extends layout/layout.pug
 
 
+block nav
+	nav
+		ul
+			li: a(href=`/en/${template.key}.html`) English
+			li: a(href=`/${template.key}.html`) Russian
 block content
-  - const i18n = LANG[template.key]
-
-  h1!= LANG.hello
-  p!= i18n.title
+	- const i18n = LANG[template.key]
+	h1!= LANG.hello
+	p!= i18n.title
