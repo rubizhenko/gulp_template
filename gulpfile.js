@@ -24,7 +24,10 @@ const autoprefixer = require("autoprefixer"),
 	pug = require("gulp-pug-i18n"),
 	shell = require("shelljs"),
 	gulpRevAll = require("gulp-rev-all"),
-	slugify = require("slugify");
+	slugify = require("slugify"),
+	zip = require("gulp-zip");
+
+const { name: productName } = require("./package.json");
 
 const DEFAULT_LOCALE = "ru";
 
@@ -48,7 +51,7 @@ const path = {
 		sprite: "src/sprite/**/*.{jpg,jpeg,png}",
 		spriteSVG: "src/sprite_svg/*.svg",
 		svgico: "src/svgico/*.svg",
-		js: "src/js/*.js",
+		js: "src/ts/*.{js,ts}",
 		fonts: "src/fonts/**/*.*",
 		svg: "src/svg/**/*.*",
 		copy: "src/copy/**/*.*",
@@ -69,11 +72,16 @@ const path = {
 		svg: "www/img/svg",
 		fonts: "www/fonts/",
 	},
+	archive: {
+		root: "archive/",
+		assets: "archive/assets/",
+		zip: "archive/_zip/",
+	},
 	watch: {
 		html: "src/**/*" + (config.pug ? ".pug" : ".html"),
-		templates: "src/templates/*.pug",
 		locales: "src/locale/*",
-		js: "src/js/**/*.js",
+		templates: "src/templates/*.pug",
+		js: "src/ts/**/*.{js,ts}",
 		style: "src/style/**/*.{scss,sass,css}",
 		bootstrap: "src/bootstrap/*.+(scss|sass)",
 		img: "src/img/**/*.+{jpg,jpeg,png,gif,ico}",
@@ -166,6 +174,82 @@ function htmlDeploy() {
 		.pipe(dest(path.deploy.root));
 }
 
+function htmlArchive(done) {
+	const locales = fs
+		.readdirSync("src/locale/")
+		.filter((file) => nodePath.extname(file) === ".json")
+		.map((locale) => locale.replace(".json", ""));
+	const htmlBuildPromises = [];
+
+	if (locales.length) {
+		for (let i = 0; i < locales.length; i++) {
+			const loc = locales[i];
+			htmlBuildPromises.push(
+				streamPromise(
+					src(path.src.html)
+						.pipe(
+							pug({
+								i18n: {
+									namespace: "LANG",
+									locales: `src/locale/${loc}.json`,
+									filename: `{{{lang}}/}{{basename}}.html`,
+								},
+								data: {
+									url(LANG, baseUrl) {
+										const locale = LANG.locale || LANG;
+										const urlLocale = loc === locale ? "" : locale;
+										return nodePath.join(`/${urlLocale}/`, baseUrl);
+									},
+								},
+								pretty: true, // Pug option
+							})
+						)
+						.on("error", function (err) {
+							console.log(err.message);
+							this.emit("end");
+						})
+						.pipe(dest(path.archive.root))
+				)
+			);
+			htmlBuildPromises.push(
+				streamPromise(
+					src(path.archive.assets + "/**").pipe(
+						dest(`${path.archive.root}/${loc}`)
+					)
+				)
+			);
+		}
+		return Promise.all(htmlBuildPromises);
+	}
+	return done();
+}
+function zipResult(done) {
+	const locales = fs
+		.readdirSync("src/locale/")
+		.filter((file) => nodePath.extname(file) === ".json")
+		.map((locale) => locale.replace(".json", ""));
+	const zipPromises = [];
+
+	if (locales.length) {
+		for (let i = 0; i < locales.length; i++) {
+			const loc = locales[i];
+			zipPromises.push(
+				streamPromise(
+					src(`${path.archive.root}/${loc}/**`)
+						.pipe(zip(`${loc}${productName ? "-" + productName : ""}.zip`))
+						.on("error", function (err) {
+							console.log(err.message);
+							this.emit("end");
+						})
+						.pipe(dest(path.archive.zip))
+				)
+			);
+		}
+		return Promise.all(zipPromises);
+	}
+	return done();
+}
+
 function css() {
 	return src(path.src.style)
 		.pipe(sourcemaps.init({ largeFile: true }))
@@ -201,12 +285,18 @@ function js() {
 					module: {
 						rules: [
 							{
-								test: /\.(js)$/,
+								test: /\.(js|jsx|tsx|ts)$/,
 								loader: "babel-loader",
 								exclude: /(node_modules)/,
 								query: {
-									presets: ["@babel/env"],
-									plugins: ["@babel/plugin-proposal-object-rest-spread"],
+									presets: ["@babel/env", "@babel/preset-typescript"],
+									plugins: [
+										"@babel/plugin-proposal-object-rest-spread",
+										"@babel/plugin-proposal-class-properties",
+									],
+								},
+								resolve: {
+									extensions: [".ts", ".js"],
 								},
 							},
 						],
@@ -257,12 +347,18 @@ function jsDeploy() {
 					module: {
 						rules: [
 							{
-								test: /\.(js)$/,
+								test: /\.(js|jsx|tsx|ts)$/,
 								loader: "babel-loader",
 								exclude: /(node_modules)/,
 								query: {
-									presets: ["@babel/env"],
-									plugins: ["@babel/plugin-proposal-object-rest-spread"],
+									presets: ["@babel/env", "@babel/preset-typescript"],
+									plugins: [
+										"@babel/plugin-proposal-object-rest-spread",
+										"@babel/plugin-proposal-class-properties",
+									],
+								},
+								resolve: {
+									extensions: [".ts", ".js"],
 								},
 							},
 						],
@@ -537,6 +633,10 @@ function cleanDeploy(done) {
 	del.sync(path.deploy.root);
 	return done();
 }
+function cleanArchive(done) {
+	del.sync(path.archive.root);
+	return done();
+}
 function streamPromise(stream) {
 	return new Promise((resolve, reject) => {
 		stream.on("end", () => {
@@ -639,6 +739,33 @@ exports.deploy = series(
 		svgDeploy
 	),
 	(done) => revAll(done, path.deploy.root)
+);
+
+// archive task
+
+/**
+ * 1. Build assets and store in temp folder
+ * 2. Build html N times based on locale files
+ * 3. Copy assets + html to new folder
+ * 4. Archive folder
+ */
+exports.archive = series(
+	cleanDeploy,
+	cleanArchive,
+	fico,
+	config.sprites ? sprite : (done) => done(),
+	config.spritesSVG ? spriteSVG : (done) => done(),
+	parallel(
+		cssDeploy,
+		jsDeploy,
+		fontsDeploy,
+		copyDeploy,
+		imagesDeploy,
+		svgDeploy
+	),
+	(done) => src(path.deploy.root + "/**").pipe(dest(path.archive.assets)),
+	htmlArchive,
+	zipResult
 );
 
 exports.watch = series(exports.default, startServer, watchSource);

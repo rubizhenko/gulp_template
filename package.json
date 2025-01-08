@@ -8,6 +8,7 @@
 		"start": "gulp watch",
 		"build": "gulp deploy",
 		"batch": "gulp batch",
+		"archive": "gulp archive",
 		"ver": "yarn version --patch"
 	},
 	"repository": {
@@ -22,11 +23,20 @@
 	"browserslist": [
 		"> 0.25%, not dead"
 	],
+	"engines": {
+		"node": "=12.x"
+	},
+	
 	"homepage": "https://github.com/rubizhenko/gulp_template#readme",
 	"devDependencies": {
 		"@babel/core": "^7.4.4",
+		"@babel/plugin-proposal-class-properties": "^7.14.5",
 		"@babel/plugin-proposal-object-rest-spread": "^7.4.4",
 		"@babel/preset-env": "^7.4.4",
+		"@babel/preset-typescript": "^7.14.5",
+		"@types/jquery": "^3.5.14",
+		"@types/object-fit-images": "^3.2.3",
+		"@types/slick-carousel": "^1.6.40",
 		"acorn": "^6.4.1",
 		"autoprefixer": "^9.5.1",
 		"babel-loader": "^8.0.6",
@@ -38,7 +48,7 @@
 		"gulp-babel": "^8.0.0",
 		"gulp-clean-css": "^4.2.0",
 		"gulp-group-css-media-queries": "^1.2.2",
-		"gulp-iconfont": "^10.0.2",
+		"gulp-iconfont": "^11.0.1",
 		"gulp-iconfont-css": "^3.0.0",
 		"gulp-include": "^2.4.1",
 		"gulp-postcss": "^8.0.0",
@@ -52,13 +62,15 @@
 		"gulp-wait": "0.0.2",
 		"gulp.spritesmith-multi": "^3.1.0",
 		"highlight.js": "^10.4.1",
-		"node-sass": "^4.12.0",
-		"shelljs": "^0.8.3",
+		"node-sass": "^4.14.0",
+		"shelljs": "^0.8.5",
 		"vinyl-named": "^1.1.0",
 		"webpack-stream": "^5.2.1"
 	},
 	"dependencies": {
-		"object-fit-images": "^3.2.4",
-		"slugify": "^1.6.0"
+		"slugify": "^1.6.0",
+		"gulp-zip": "^5.1.0",
+		"no-scroll": "^2.1.1",
+		"object-fit-images": "^3.2.4"
 	}
 }

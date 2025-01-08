@@ -1,0 +1,6 @@
+mixin renderText({text, className, component="p"})
+	if typeof text === "object"
+		each item in text
+			#{component}(class=className)!= item
+	else
+		#{component}(class=className)!= text

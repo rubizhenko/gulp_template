@@ -1,4 +1,13 @@
 extends chunks/layout.pug
 
 block content
-	h1!= LANG.hello
+	.container
+		a(href="/en") En
+		a(href="/") Ru
+	.container
+		h1!= LANG.hello
+	footer.footer
+		.container
+			h2!= LANG.footer.title
+	script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js")
+	script(src="js/main.js")

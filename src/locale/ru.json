@@ -1,13 +1,16 @@
 {
-  "locale": "ru",
-  "hello": "Привет мир",
-  "product-1": {
-    "title": "Продукт 1"
-  },
-  "product-2": {
-    "title": "Продукт 2"
-  },
-  "product-3": {
-    "title": "Продукт 3"
-  }
+	"locale": "ru",
+	"hello": "Привет мир",
+	"footer": {
+		"title": "Титул нижнего колонтитула"
+	},
+	"product-1": {
+		"title": "Продукт 1"
+	},
+	"product-2": {
+		"title": "Продукт 2"
+	},
+	"product-3": {
+		"title": "Продукт 3"
+	}
 }
