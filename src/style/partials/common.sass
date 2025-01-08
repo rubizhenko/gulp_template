@@ -1,6 +1,8 @@
 body
-	font-family: $baseFont
-	font-size: 16px
+	font-family: Arial, sans-serif
+	line-height: 1.6
+	background-color: $background-color
+	color: $text-color
 
 // Font icons
 .fico
@@ -8,15 +10,34 @@ body
 	&::before
 		display: block
 
+// Header
+header
+	background: $primary-color
+	color: white
+	padding: 10px 20px
 
-.container
-	width: 1200px
-	margin-left: auto
-	margin-right: auto
-	padding: 50px 15px
-	background: lime
+	nav
+		ul
+			display: flex
+			justify-content: flex-start
+			align-items: center
+		a
+			color: white
+			text-decoration: none
+			margin-right: 15px
 
-.footer
-	margin-top: 20px
-	.container
-		background: yellow
+			&:hover 
+				text-decoration: underline
+
+// Main Content
+main
+	margin: 20px 0
+	padding: 0 20px
+	min-height: calc(100vh - 130px)
+
+// Footer
+footer
+	background: $primary-color
+	color: white
+	padding: 10px 20px
+	text-align: center

@@ -1,20 +1,9 @@
-include templates/mixins/index.pug
-<!DOCTYPE html>
-html(lang=LANG.locale)
-	head
-		meta(charset="UTF-8")
-		meta(name="viewport", content="width=device-width, initial-scale=1.0")
-		meta(http-equiv="X-UA-Compatible", content="ie=edge")
-		link(rel="stylesheet", href="css/main.css")
-		title Document
-	body.loading
-		.container
-			a(href="/en") En
-			a(href="/") Ru
-		.container
-			h1!= LANG.hello
-		footer.footer
-			.container
-				h2!= LANG.footer.title
-		script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js")
-		script(src="js/main.js")
+extends templates/layout/layout.pug
+
+block content
+	h1!= LANG.hello
+	- const localeRoot = LANG.locale === 'ru'? '/':`/${LANG.locale}/`;
+	ul
+		li: a(href=`${localeRoot}product-1.html`) Product 1
+		li: a(href=`${localeRoot}product-2.html`) Product 2
+		li: a(href=`${localeRoot}product-3.html`) Product 3

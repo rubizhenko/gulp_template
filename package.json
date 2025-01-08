@@ -66,6 +66,7 @@
 		"webpack-stream": "^5.2.1"
 	},
 	"dependencies": {
+		"slugify": "^1.6.0",
 		"gulp-zip": "^5.1.0",
 		"no-scroll": "^2.1.1",
 		"object-fit-images": "^3.2.4"
